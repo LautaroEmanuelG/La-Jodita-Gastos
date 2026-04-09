@@ -1,0 +1,274 @@
+export const prerender = false;
+
+import type { APIRoute } from 'astro';
+import { h } from 'preact';
+import { ImageResponse } from '@vercel/og';
+import { getRedisClient } from '../../../lib/redis';
+
+const WIDTH = 1200;
+const HEIGHT = 630;
+const VALID_ID_REGEX = /^[a-z0-9]{4,10}$/;
+const APP_EMOJI_POOL = ['💸', '🍻', '🧉', '🎉', '😎', '🍕', '🚕', '🏝️'];
+
+const sumExpensesBase = (expenses: unknown): number => {
+  if (!Array.isArray(expenses)) return 0;
+
+  return expenses.reduce((acc, expense) => {
+    const row = expense as Record<string, unknown>;
+    const base = Number(row.amountInBase);
+    const amount = Number(row.amount);
+
+    if (Number.isFinite(base)) return acc + base;
+    if (Number.isFinite(amount)) return acc + amount;
+    return acc;
+  }, 0);
+};
+
+const extractEmojis = (expenses: unknown): string[] => {
+  if (!Array.isArray(expenses)) return ['💸', '🍻', '🧉', '🎉'];
+
+  const unique = [
+    ...new Set(
+      expenses
+        .map(item => {
+          const row = item as Record<string, unknown>;
+          return typeof row.emoji === 'string' ? row.emoji.trim() : '';
+        })
+        .filter(Boolean),
+    ),
+  ];
+
+  return unique.length ? unique.slice(0, 4) : ['💸', '🍻', '🧉', '🎉'];
+};
+
+const getTensionAmount = (value: number): string => {
+  const digits = Math.abs(Math.round(value)).toString();
+  return `${digits.slice(0, 3)}...`;
+};
+
+const pickEmojiFromPool = (seedText: string): string => {
+  const hash = seedText
+    .split('')
+    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  return APP_EMOJI_POOL[hash % APP_EMOJI_POOL.length] ?? APP_EMOJI_POOL[0];
+};
+
+const buildImage = (input: {
+  title: string;
+  subtitle: string;
+  totalLabel: string;
+  emojis: string[];
+  iconUrl: string;
+}) => {
+  const { title, subtitle, totalLabel, emojis, iconUrl } = input;
+
+  const emojiBadges = emojis.map(emoji =>
+    h(
+      'div',
+      {
+        style: {
+          width: '58px',
+          height: '58px',
+          borderRadius: '18px',
+          background: '#f2efff',
+          border: '1px solid #ddd7fb',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '34px',
+        },
+      },
+      emoji,
+    ),
+  );
+
+  return new ImageResponse(
+    h(
+      'div',
+      {
+        style: {
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          position: 'relative',
+          background:
+            'radial-gradient(circle at 15% 20%, #ffffff 0%, #f1eeff 40%, #e9e3ff 100%)',
+          color: '#1e1b3a',
+          fontFamily:
+            'ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Inter, sans-serif',
+          padding: '52px',
+          overflow: 'hidden',
+        },
+      },
+      h('div', {
+        style: {
+          position: 'absolute',
+          top: '-120px',
+          right: '-100px',
+          width: '420px',
+          height: '420px',
+          borderRadius: '50%',
+          background: 'rgba(108, 92, 231, 0.18)',
+        },
+      }),
+      h('div', {
+        style: {
+          position: 'absolute',
+          bottom: '-140px',
+          left: '-120px',
+          width: '380px',
+          height: '380px',
+          borderRadius: '50%',
+          background: 'rgba(162, 155, 254, 0.22)',
+        },
+      }),
+      h(
+        'div',
+        {
+          style: {
+            zIndex: 2,
+            width: '100%',
+            borderRadius: '34px',
+            border: '2px solid #e4e0f8',
+            background: 'rgba(255,255,255,0.92)',
+            boxShadow: '0 18px 42px rgba(108,92,231,0.18)',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '36px 42px',
+            justifyContent: 'space-between',
+          },
+        },
+        h(
+          'div',
+          { style: { display: 'flex', alignItems: 'center', gap: '16px' } },
+          h('img', {
+            src: iconUrl,
+            width: '72',
+            height: '72',
+            style: { borderRadius: '20px', border: '2px solid #d6cffb' },
+          }),
+          h(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+              },
+            },
+            h(
+              'div',
+              {
+                style: {
+                  fontSize: '22px',
+                  fontWeight: 700,
+                  color: '#6c5ce7',
+                  letterSpacing: '-0.2px',
+                },
+              },
+              'La Jodita',
+            ),
+            h(
+              'div',
+              {
+                style: {
+                  fontSize: '17px',
+                  color: '#7c7a9a',
+                },
+              },
+              'Dividir gastos sin dramas',
+            ),
+          ),
+        ),
+        h(
+          'div',
+          { style: { display: 'flex', flexDirection: 'column', gap: '14px' } },
+          h(
+            'div',
+            {
+              style: {
+                fontSize: '64px',
+                fontWeight: 800,
+                color: '#1e1b3a',
+                letterSpacing: '-1.4px',
+                lineHeight: 1,
+              },
+            },
+            title,
+          ),
+          h(
+            'div',
+            {
+              style: {
+                fontSize: '28px',
+                color: '#5a4fcc',
+                fontWeight: 700,
+              },
+            },
+            totalLabel,
+          ),
+          h('div', { style: { fontSize: '24px', color: '#7c7a9a' } }, subtitle),
+        ),
+        h(
+          'div',
+          { style: { display: 'flex', gap: '14px', alignItems: 'center' } },
+          ...emojiBadges,
+        ),
+      ),
+    ),
+    {
+      width: WIDTH,
+      height: HEIGHT,
+    },
+  );
+};
+
+export const GET: APIRoute = async ({ params, url }) => {
+  const id = params.id ?? '';
+
+  if (!VALID_ID_REGEX.test(id)) {
+    return new Response('Not found', { status: 404 });
+  }
+
+  try {
+    const redis = await getRedisClient();
+    const raw = await redis.get<string>(`s:${id}`);
+
+    if (!raw) {
+      return new Response('Not found', { status: 404 });
+    }
+
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const tripName =
+      typeof parsed.tripName === 'string' && parsed.tripName.trim()
+        ? parsed.tripName.trim()
+        : 'Plan sin nombre';
+    const baseCurrency =
+      typeof parsed.baseCurrency === 'string' && parsed.baseCurrency.trim()
+        ? parsed.baseCurrency.trim()
+        : 'ARS';
+    const participantsCount = Array.isArray(parsed.participants)
+      ? parsed.participants.length
+      : 0;
+    const expenses = Array.isArray(parsed.expenses) ? parsed.expenses : [];
+    const total = Math.round(sumExpensesBase(expenses));
+    const tensionAmount = getTensionAmount(total);
+    const emojis = extractEmojis(expenses);
+    const appEmoji = pickEmojiFromPool(id);
+    const iconUrl = `${url.origin}/icon/la-jodita.svg`;
+
+    const image = buildImage({
+      title: `${appEmoji} La Jodita ${tensionAmount}`,
+      totalLabel: `${tensionAmount} ${baseCurrency}`,
+      subtitle: `${tripName} · ${participantsCount} personas`,
+      emojis,
+      iconUrl,
+    });
+
+    image.headers.set('Cache-Control', 'public, max-age=300, s-maxage=600');
+    return image;
+  } catch (error) {
+    console.error('[GET /api/og/:id.png]', error);
+    return new Response('Error', { status: 500 });
+  }
+};

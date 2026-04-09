@@ -3439,7 +3439,7 @@
           throw new Error(err.error || res.status);
         }
         const { id } = await res.json();
-        return `${location.origin}${location.pathname}?s=${id}`;
+        return `${location.origin}/s/${id}`;
       }
 
       async function saveAndShare() {
@@ -3457,7 +3457,8 @@
             sharedAt: new Date().toISOString(),
           };
           const url = await _publishSnapshot(snapshot);
-          const shareId = new URL(url).searchParams.get('s');
+          const shareId =
+            new URL(url).pathname.split('/').filter(Boolean).pop() || null;
           _saveToHistory(snapshot, { shareId, isOwner: true });
           _copyToClipboard(url);
           showToast('🔗 Link copiado — sesión guardada');
