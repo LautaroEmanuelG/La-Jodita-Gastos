@@ -1,23 +1,36 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
-import fs from 'node:fs';
-import path from 'node:path';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+async function fetchSession(id: string): Promise<string | null> {
+  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+    const { kv } = await import('@vercel/kv');
+    const data = await kv.get<string>(id);
+    return data ?? null;
+  } else {
+    const { default: fs } = await import('node:fs');
+    const { default: path } = await import('node:path');
+    const file = path.join(process.cwd(), 'data', `${id}.json`);
+    if (!fs.existsSync(file)) return null;
+    return fs.readFileSync(file, 'utf-8');
+  }
+}
 
-export const GET: APIRoute = ({ params }) => {
+export const GET: APIRoute = async ({ params }) => {
   const id = params.id ?? '';
-  if (!/^[\w-]{1,20}$/.test(id)) {
+  if (!/^[\w-]{1,24}$/.test(id)) {
     return new Response('Not found', { status: 404 });
   }
 
-  const file = path.join(DATA_DIR, `${id}.json`);
-  if (!fs.existsSync(file)) {
-    return new Response('Not found', { status: 404 });
-  }
+  try {
+    const data = await fetchSession(id);
+    if (!data) return new Response('Not found', { status: 404 });
 
-  return new Response(fs.readFileSync(file, 'utf-8'), {
-    headers: { 'Content-Type': 'application/json' },
-  });
+    return new Response(typeof data === 'string' ? data : JSON.stringify(data), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    console.error('[/api/session GET]', err);
+    return new Response('Error', { status: 500 });
+  }
 };

@@ -1,0 +1,997 @@
+<!DOCTYPE html><html lang="es"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Divisor de Gastos</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236c5ce7'/><line x1='16' y1='4' x2='16' y2='28' stroke='white' stroke-width='3' stroke-linecap='round'/><path d='M22 9H13a4.5 4.5 0 0 0 0 9h6a4.5 4.5 0 0 1 0 9H8' stroke='white' stroke-width='3' stroke-linecap='round'/></svg>"><link rel="stylesheet" href="/_astro/index.Dblo4Exo.css"></head> <body> <div id="shared-banner" style="display:none;"></div> <header> <div class="logo"> <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"> <line x1="12" y1="1" x2="12" y2="23"></line> <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path> </svg> </div> <h1>Divisor</h1> <span class="trip-name" id="header-trip-name" style="display:none"></span> <button class="btn-history" onclick="openHistory()" id="btn-history"> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"> <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline> </svg>
+Historial
+<span class="count" id="history-count" style="display:none">0</span> </button> </header> <div class="stepper-wrap"> <div class="stepper"> <div class="step active" data-step="1" onclick="goToStep(1)"> <div class="step-bubble">1</div> <div class="step-label">Grupo</div> </div> <div class="step" data-step="2" onclick="goToStep(2)"> <div class="step-bubble">2</div> <div class="step-label">Monedas</div> </div> <div class="step" data-step="3" onclick="goToStep(3)"> <div class="step-bubble">3</div> <div class="step-label">Gastos</div> </div> <div class="step" data-step="4" onclick="goToStep(4)"> <div class="step-bubble">4</div> <div class="step-label">Liquidar</div> </div> </div> </div> <div class="container"> <!-- ═══════════ STEP 1: GRUPO ═══════════ --> <div id="step-1" class="panel active"> <div class="card"> <div class="card-title">¿Cómo se llama el grupo?</div> <div class="card-sub">Un nombre para identificar este viaje o evento</div> <div class="field"> <input type="text" id="trip-name" placeholder="Ej: Viaje a Chile, Asado del 15..."> </div> </div> <div class="card"> <div class="card-title">¿Quiénes participan?</div> <div class="card-sub">Agregá a todos los participantes del grupo</div> <div class="participants-input-row"> <input type="text" id="new-participant" placeholder="Nombre del participante" style="flex:1;"> <button class="btn btn-primary" onclick="addParticipant()">+</button> </div> <div class="participants-chips" id="chips-container"> <div class="empty-state" style="padding:12px 0; font-size:13px;">
+Todavía no hay participantes
+</div> </div> </div> <div class="nav-actions"> <div class="spacer"></div> <button class="btn btn-primary" onclick="goToStep(2)">
+Siguiente →
+</button> </div> </div> <!-- ═══════════ STEP 2: MONEDAS ═══════════ --> <div id="step-2" class="panel"> <div class="card"> <div class="card-title">
+Monedas
+<span class="optional-badge">Opcional</span> </div> <div class="card-sub">
+¿En qué moneda van a cargar los gastos? Podés agregar varias si pagaron en distintas monedas durante el viaje.
+</div> <div class="field" style="margin-bottom:20px;"> <label>Moneda principal</label> <select id="base-currency-select"> <option value="ARS">$ Peso Argentino (ARS)</option> <option value="USD">$ Dólar (USD)</option> <option value="CLP">$ Peso Chileno (CLP)</option> <option value="EUR">€ Euro (EUR)</option> <option value="BRL">R$ Real (BRL)</option> <option value="UYU">$ Peso Uruguayo (UYU)</option> <option value="MXN">$ Peso Mexicano (MXN)</option> </select> </div> <div class="divider-label"> <span>Monedas adicionales</span> </div> <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
+Si pagaron en más de una moneda, agregá las equivalencias para poder calcular correctamente.
+</p> <div class="flex gap-8" style="margin-bottom:12px;"> <div class="field" style="flex:1;"> <label>Código</label> <input type="text" id="new-currency-code" placeholder="USD" maxlength="5" style="text-transform:uppercase"> </div> <div class="field" style="flex:2;"> <label>1 <span id="currency-rate-label">ARS</span> = ? <span id="new-curr-code-preview">USD</span></label> <input type="number" id="new-currency-rate" placeholder="0.00118" step="any"> </div> <div class="field" style="justify-content:flex-end;"> <label>&nbsp;</label> <button class="btn btn-ghost" onclick="addExtraCurrency()" style="height:42px;">Agregar</button> </div> </div> <div id="extra-currencies-list"></div> </div> <div class="nav-actions"> <button class="btn btn-ghost" onclick="goToStep(1)">← Atrás</button> <div class="spacer"></div> <button class="btn btn-primary" onclick="goToStep(3)">Siguiente →</button> </div> </div> <!-- ═══════════ STEP 3: GASTOS ═══════════ --> <div id="step-3" class="panel"> <!-- Quick add form --> <div class="card" id="expense-form-card"> <div class="card-title">Nuevo gasto</div> <!-- Amount + currency --> <div class="field" style="margin-bottom:14px;"> <label>Monto</label> <div class="amount-input-wrap"> <span class="amount-prefix" id="amount-prefix-symbol">$</span> <input type="number" id="exp-amount" placeholder="0" step="any" inputmode="decimal"> <button class="amount-currency-btn" id="currency-toggle-btn" onclick="openCurrencyPicker()"> <span id="selected-currency-label">ARS</span> <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"></path></svg> </button> </div> </div> <!-- Description --> <div class="field" style="margin-bottom:14px;"> <label>Descripción <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:10px;">(opcional)</span></label> <input type="text" id="exp-desc" placeholder="Ej: Almuerzo, Nafta, Hotel..."> </div> <!-- Who paid --> <div class="field" style="margin-bottom:14px;"> <label>¿Quién pagó?</label> <div class="payer-grid" id="payer-grid"></div> </div> <!-- Split --> <div class="field" style="margin-bottom:16px;"> <label>División</label> <div class="split-toggle"> <button class="split-option active" data-split="equal" onclick="setSplitType('equal')">Igual entre todos</button> <button class="split-option" data-split="select" onclick="setSplitType('select')">Solo algunos</button> <button class="split-option" data-split="custom" onclick="setSplitType('custom')">Montos exactos</button> </div> <div id="split-extra" style="margin-top:10px;"></div> </div> <button class="btn btn-primary btn-full" onclick="addExpense()"> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+Agregar gasto
+</button> </div> <!-- List --> <div id="expenses-list-wrap"> <div id="total-bar" style="display:none;" class="total-bar"> <span class="label">Total cargado</span> <span class="value" id="total-value">$0</span> </div> <div id="expenses-list"></div> </div> <div class="nav-actions"> <button class="btn btn-ghost" onclick="goToStep(2)">← Atrás</button> <div class="spacer"></div> <button class="btn btn-success" onclick="goToStep(4)">
+Calcular →
+</button> </div> </div> <!-- ═══════════ STEP 4: LIQUIDACIÓN ═══════════ --> <div id="step-4" class="panel"> <div id="error-box" class="error-box" style="display:none;"></div> <!-- Save & Share bar --> <div class="save-bar" id="save-bar"> <div class="save-bar-info"> <div class="title">🔗 Guardar y compartir</div> <div class="sub">Se guarda en historial local y genera un link para compartir</div> </div> <div class="save-bar-actions"> <button class="btn btn-primary btn-sm" id="btn-compartir" onclick="saveAndShare()"> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"> <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path> <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path> </svg>
+Compartir
+</button> </div> </div> <div id="liquidacion-result"> <!-- Balance summary --> <div class="card" style="padding:0; overflow:hidden; margin-bottom:16px;"> <table class="balance-table"> <thead> <tr> <th>Persona</th> <th>Pagó</th> <th>Le corresponde</th> <th>Balance</th> </tr> </thead> <tbody id="balance-tbody"></tbody> </table> </div> <!-- Who pays whom --> <div style="font-size:11px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:var(--muted); margin-bottom:14px; margin-top:4px;">
+💸 Transferencias
+</div> <div id="settlements-list"></div> <!-- Alt currency --> <div id="alt-currency-section" style="display:none; margin-top:20px;"> <div class="divider-label"><span>Equivalencias</span></div> <div class="flex gap-8" style="margin-bottom:12px;"> <div class="field" style="flex:1;"> <label>Ver también en</label> <select id="alt-currency-select" onchange="renderAltAmounts()"></select> </div> </div> <div id="alt-amounts-list"></div> </div> </div> <div class="nav-actions"> <button class="btn btn-ghost" onclick="goToStep(3)">← Editar gastos</button> </div> </div> </div> <!-- History drawer --> <div id="history-overlay" class="drawer-overlay" style="display:none;" onclick="closeHistoryIfOverlay(event)"> <div class="drawer"> <div class="drawer-header"> <div> <div class="drawer-title">📋 Historial</div> <div style="font-size:12px; color:var(--muted); margin-top:2px;">Últimas 20 sesiones guardadas</div> </div> <button class="btn-card" onclick="closeHistory()" style="width:36px; height:36px; border-radius:10px;"> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"> <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line> </svg> </button> </div> <div class="drawer-body" id="history-list"> <div class="empty-state"><div class="icon">📂</div>Sin sesiones guardadas</div> </div> <div class="drawer-footer"> <button class="btn btn-ghost btn-full" onclick="closeHistory()">Cerrar</button> </div> </div> </div> <!-- Currency picker modal --> <div id="currency-modal" class="currency-modal-overlay" style="display:none;" onclick="closeCurrencyPickerIfOverlay(event)"> <div class="currency-modal"> <div class="modal-handle"></div> <div style="font-size:15px; font-weight:700; margin-bottom:14px;">Seleccionar moneda</div> <div id="currency-modal-options"></div> <button class="btn btn-ghost btn-full" style="margin-top:12px;" onclick="closeCurrencyPicker()">Cancelar</button> </div> </div> <script>
+// ─── COLORS ───────────────────────────────────────────────────────────────────
+const COLORS = ['#6c5ce7','#00b894','#e17055','#0984e3','#fd79a8','#fdcb6e','#00cec9','#a29bfe','#d63031','#55efc4'];
+function colorFor(name) {
+  let hash = 0;
+  for (const c of name) hash = (hash * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return COLORS[Math.abs(hash) % COLORS.length];
+}
+function initials(name) {
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const KEY = 'divisor-v2';
+function load() {
+  try { const r = localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch {}
+  return { tripName:'', participants:[], baseCurrency:'ARS', extraCurrencies:[], expenses:[] };
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+let state = load();
+let currentStep = 1;
+let selectedPayer = null;
+let splitType = 'equal';
+let selectedExpenseCurrency = state.baseCurrency;
+let _liquidacion = [];
+
+// ─── STEP NAVIGATION ──────────────────────────────────────────────────────────
+function goToStep(n) {
+  // Save group name on navigate
+  state.tripName = document.getElementById('trip-name').value.trim();
+  state.baseCurrency = document.getElementById('base-currency-select').value;
+  save();
+
+  if (n === 4) { calcularLiquidacion(); }
+
+  currentStep = n;
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+
+  document.querySelectorAll('.step').forEach(s => {
+    const sn = parseInt(s.dataset.step);
+    s.classList.remove('active', 'done');
+    if (sn === n) s.classList.add('active');
+    else if (sn < n) s.classList.add('done');
+  });
+
+  // Render context
+  if (n === 1) renderChips();
+  if (n === 2) renderCurrencyRateLabel();
+  if (n === 3) { renderPayerGrid(); renderExpensesList(); selectedExpenseCurrency = state.baseCurrency; updateCurrencyBtn(); }
+  if (n === 4) {
+    renderAltCurrencySection();
+    document.querySelector('.save-bar').style.display = _isSharedView ? 'none' : '';
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── TRIP NAME ────────────────────────────────────────────────────────────────
+function renderHeaderName() {
+  const el = document.getElementById('header-trip-name');
+  if (state.tripName) { el.textContent = state.tripName; el.style.display = ''; }
+  else el.style.display = 'none';
+}
+
+// ─── PARTICIPANTS ──────────────────────────────────────────────────────────────
+function addParticipant() {
+  const inp = document.getElementById('new-participant');
+  const name = inp.value.trim();
+  if (!name || state.participants.includes(name)) { inp.value = ''; return; }
+  state.participants.push(name);
+  save();
+  inp.value = '';
+  inp.focus();
+  renderChips();
+}
+
+document.getElementById('new-participant').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addParticipant();
+});
+
+function removeParticipant(name) {
+  state.participants = state.participants.filter(p => p !== name);
+  save();
+  renderChips();
+}
+
+function renderChips() {
+  const el = document.getElementById('chips-container');
+  if (!state.participants.length) {
+    el.innerHTML = '<div style="padding:12px 0; font-size:13px; color:var(--muted);">Todavía no hay participantes</div>';
+    return;
+  }
+  el.innerHTML = state.participants.map(p => {
+    const color = colorFor(p);
+    return `<span class="chip" style="background:${color}18; color:${color};">
+      <span class="chip-avatar" style="background:${color};">${initials(p)}</span>
+      <span class="chip-name">${p}</span>
+      <button class="chip-remove" onclick="removeParticipant(${JSON.stringify(p)})" style="color:${color}80;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </span>`;
+  }).join('');
+}
+
+// ─── CURRENCIES ───────────────────────────────────────────────────────────────
+function allCurrencies() {
+  return [{ code: state.baseCurrency, rate: 1 }, ...state.extraCurrencies];
+}
+
+function renderCurrencyRateLabel() {
+  const base = document.getElementById('base-currency-select').value;
+  state.baseCurrency = base;
+  document.getElementById('currency-rate-label').textContent = base;
+  renderExtraCurrencies();
+}
+
+document.getElementById('base-currency-select').addEventListener('change', () => {
+  renderCurrencyRateLabel();
+});
+
+document.getElementById('new-currency-code').addEventListener('input', e => {
+  document.getElementById('new-curr-code-preview').textContent = e.target.value.toUpperCase() || '?';
+});
+
+function addExtraCurrency() {
+  const code = document.getElementById('new-currency-code').value.trim().toUpperCase();
+  const rate = parseFloat(document.getElementById('new-currency-rate').value);
+  if (!code || isNaN(rate) || rate <= 0) return;
+  if (code === state.baseCurrency) return;
+  const existing = state.extraCurrencies.find(c => c.code === code);
+  if (existing) existing.rate = rate;
+  else state.extraCurrencies.push({ code, rate });
+  save();
+  document.getElementById('new-currency-code').value = '';
+  document.getElementById('new-currency-rate').value = '';
+  document.getElementById('new-curr-code-preview').textContent = 'USD';
+  renderExtraCurrencies();
+}
+
+function removeExtraCurrency(code) {
+  state.extraCurrencies = state.extraCurrencies.filter(c => c.code !== code);
+  save();
+  renderExtraCurrencies();
+}
+
+function updateExtraRate(code, val) {
+  const c = state.extraCurrencies.find(c => c.code === code);
+  if (c) { c.rate = parseFloat(val) || c.rate; save(); }
+}
+
+function renderExtraCurrencies() {
+  const el = document.getElementById('extra-currencies-list');
+  if (!state.extraCurrencies.length) { el.innerHTML = ''; return; }
+  el.innerHTML = state.extraCurrencies.map(c => `
+    <div class="currency-card">
+      <div class="currency-badge">${c.code}</div>
+      <div class="currency-info">
+        <div class="currency-code">${c.code}</div>
+        <div class="currency-rate">1 ${state.baseCurrency} = <input type="number" value="${c.rate}" step="any"
+          style="width:80px; display:inline; padding:2px 6px; font-size:12px; border-radius:6px;"
+          onchange="updateExtraRate('${c.code}', this.value)" /> ${c.code}</div>
+      </div>
+      <button class="btn-remove" onclick="removeExtraCurrency('${c.code}')">✕</button>
+    </div>
+  `).join('');
+}
+
+// ─── CURRENCY PICKER ──────────────────────────────────────────────────────────
+function openCurrencyPicker() {
+  const modal = document.getElementById('currency-modal');
+  const opts = document.getElementById('currency-modal-options');
+  const currencies = allCurrencies();
+  opts.innerHTML = currencies.map(c => `
+    <button class="btn ${c.code === selectedExpenseCurrency ? 'btn-primary' : 'btn-ghost'}"
+      style="width:100%; margin-bottom:6px; justify-content:flex-start;"
+      onclick="selectExpenseCurrency('${c.code}')">
+      ${c.code} ${c.code === state.baseCurrency ? '· moneda principal' : ''}
+    </button>
+  `).join('');
+  modal.style.display = 'flex';
+}
+
+function closeCurrencyPicker() {
+  document.getElementById('currency-modal').style.display = 'none';
+}
+function closeCurrencyPickerIfOverlay(e) {
+  if (e.target === document.getElementById('currency-modal')) closeCurrencyPicker();
+}
+function selectExpenseCurrency(code) {
+  selectedExpenseCurrency = code;
+  updateCurrencyBtn();
+  closeCurrencyPicker();
+}
+function updateCurrencyBtn() {
+  document.getElementById('selected-currency-label').textContent = selectedExpenseCurrency;
+  // symbol
+  const symbols = { ARS:'$', USD:'US$', EUR:'€', CLP:'$', BRL:'R$', UYU:'$', MXN:'$' };
+  document.getElementById('amount-prefix-symbol').textContent = symbols[selectedExpenseCurrency] || '$';
+}
+
+// ─── PAYER GRID ───────────────────────────────────────────────────────────────
+function renderPayerGrid() {
+  const grid = document.getElementById('payer-grid');
+  if (!state.participants.length) {
+    grid.innerHTML = '<span style="color:var(--muted); font-size:13px;">Primero agregá participantes en el paso 1</span>';
+    return;
+  }
+  if (!selectedPayer || !state.participants.includes(selectedPayer)) {
+    selectedPayer = state.participants[0];
+  }
+  grid.innerHTML = state.participants.map(p => {
+    const color = colorFor(p);
+    const sel = selectedPayer === p;
+    return `<button class="payer-btn ${sel ? 'selected' : ''}" onclick="selectPayer('${p}')"
+      data-name="${p}" data-color="${color}" id="payer-btn-${p}"
+      style="${sel ? `border-color:${color};background:${color}18;color:${color};` : ''}">
+      <div class="payer-avatar" style="background:${color}; opacity:${sel ? 1 : 0.55};">${initials(p)}</div>
+      ${p}
+    </button>`;
+  }).join('');
+}
+
+function selectPayer(name) {
+  selectedPayer = name;
+  document.querySelectorAll('.payer-btn').forEach(btn => {
+    const pName = btn.dataset.name;
+    const pColor = btn.dataset.color;
+    const isSel = pName === name;
+    btn.classList.toggle('selected', isSel);
+    btn.style.borderColor = isSel ? pColor : '';
+    btn.style.background  = isSel ? pColor + '18' : '';
+    btn.style.color       = isSel ? pColor : '';
+    const av = btn.querySelector('.payer-avatar');
+    if (av) av.style.opacity = isSel ? '1' : '0.55';
+  });
+}
+
+// ─── SPLIT ────────────────────────────────────────────────────────────────────
+function setSplitType(type) {
+  splitType = type;
+  document.querySelectorAll('.split-option').forEach(b => {
+    b.classList.toggle('active', b.dataset.split === type);
+  });
+  renderSplitExtra();
+}
+
+function renderSplitExtra() {
+  const el = document.getElementById('split-extra');
+  if (splitType === 'equal') { el.innerHTML = ''; return; }
+
+  if (splitType === 'select') {
+    el.innerHTML = `<div style="display:flex; flex-wrap:wrap; gap:8px;">` +
+      state.participants.map(p => {
+        const color = colorFor(p);
+        return `<label style="display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 12px; border-radius:100px; border:1.5px solid ${color}40; background:${color}10; font-size:13px; font-weight:600; color:${color};">
+          <input type="checkbox" id="sc-${p}" checked style="width:auto; accent-color:${color};" />
+          ${p}
+        </label>`;
+      }).join('') + `</div>`;
+  }
+
+  if (splitType === 'custom') {
+    el.innerHTML = `<div class="custom-splits-grid">` +
+      state.participants.map(p => {
+        const color = colorFor(p);
+        return `<div class="custom-split-field" style="border-color:${color}30;">
+          <label style="color:${color};">${p}</label>
+          <input type="number" id="ca-${p}" placeholder="0" step="any" inputmode="decimal" />
+        </div>`;
+      }).join('') + `</div>`;
+  }
+}
+
+// ─── ADD EXPENSE ──────────────────────────────────────────────────────────────
+const EXPENSE_EMOJIS = ['🍔','🛒','🏨','⛽','🎫','🍕','🍺','🚗','✈️','🏖️','🎉','☕','🍷','🛍️','💊'];
+function randomEmoji() { return EXPENSE_EMOJIS[Math.floor(Math.random() * EXPENSE_EMOJIS.length)]; }
+
+function addExpense() {
+  const amount = parseFloat(document.getElementById('exp-amount').value);
+  const desc = document.getElementById('exp-desc').value.trim() || '—';
+  const amountEl = document.getElementById('exp-amount');
+  if (!amount || isNaN(amount) || amount <= 0) {
+    amountEl.focus();
+    amountEl.style.borderColor = 'var(--red)';
+    setTimeout(() => amountEl.style.borderColor = '', 1200);
+    return;
+  }
+  if (!selectedPayer) return;
+
+  const currObj = allCurrencies().find(c => c.code === selectedExpenseCurrency);
+  // rate: how many BASE = 1 of selectedExpenseCurrency
+  // We need: amountInBase = amount / rate (if rate = 1 BASE = rate EXTRA)
+  // Actually state: 1 BASE = rate EXTRA → 1 EXTRA = 1/rate BASE
+  const amountInBase = currObj && currObj.code !== state.baseCurrency
+    ? amount / currObj.rate
+    : amount;
+
+  let splits = {};
+  if (splitType === 'equal') {
+    const each = amount / state.participants.length;
+    state.participants.forEach(p => splits[p] = each);
+  } else if (splitType === 'select') {
+    const selected = state.participants.filter(p => document.getElementById('sc-' + p)?.checked);
+    if (!selected.length) return;
+    const each = amount / selected.length;
+    selected.forEach(p => splits[p] = each);
+    // others get 0
+    state.participants.filter(p => !selected.includes(p)).forEach(p => splits[p] = 0);
+  } else {
+    let total = 0;
+    state.participants.forEach(p => {
+      const v = parseFloat(document.getElementById('ca-' + p)?.value || 0);
+      splits[p] = v; total += v;
+    });
+    if (Math.abs(total - amount) > 0.02) {
+      alert(`Los montos no suman el total.\nIngresado: ${total.toFixed(2)}, Esperado: ${amount.toFixed(2)}`);
+      return;
+    }
+  }
+
+  state.expenses.push({
+    id: Date.now(),
+    description: desc,
+    paidBy: selectedPayer,
+    currency: selectedExpenseCurrency,
+    amount,
+    amountInBase,
+    splits,
+    emoji: randomEmoji()
+  });
+  save();
+
+  document.getElementById('exp-amount').value = '';
+  document.getElementById('exp-desc').value = '';
+  setSplitType('equal');
+  document.getElementById('exp-amount').focus();
+  renderExpensesList();
+}
+
+document.getElementById('exp-amount').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('exp-desc').focus();
+});
+document.getElementById('exp-desc').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addExpense();
+});
+
+function removeExpense(id) {
+  state.expenses = state.expenses.filter(e => e.id !== id);
+  if (editingId === id) editingId = null;
+  save();
+  renderExpensesList();
+}
+
+// ─── EDIT EXPENSE ─────────────────────────────────────────────────────────────
+let editingId = null;
+let editPayerSel = {};   // { expId: 'Mario' }
+let editSplitSel = {};   // { expId: 'equal' | 'select' | 'custom' }
+
+function toggleEdit(id) {
+  if (editingId === id) { editingId = null; }
+  else {
+    const exp = state.expenses.find(e => e.id === id);
+    editingId = id;
+    editPayerSel[id] = exp.paidBy;
+    editSplitSel[id] = 'equal'; // reset to equal on open
+  }
+  renderExpensesList();
+}
+
+function setEditPayer(id, name) {
+  editPayerSel[id] = name;
+  // Update visual without full re-render
+  document.querySelectorAll(`[data-ep="${id}"]`).forEach(btn => {
+    const isMe = btn.dataset.name === name;
+    const color = btn.dataset.color;
+    btn.classList.toggle('sel', isMe);
+    btn.style.borderColor = isMe ? color : 'var(--border)';
+    btn.style.background = isMe ? color + '15' : 'var(--surface)';
+    btn.style.color = isMe ? color : 'var(--muted)';
+  });
+}
+
+function setEditSplit(id, type) {
+  editSplitSel[id] = type;
+  document.querySelectorAll(`[data-esplit="${id}"]`).forEach(b => {
+    b.classList.toggle('active', b.dataset.val === type);
+  });
+  // Show/hide extra split options
+  const extra = document.getElementById(`edit-split-extra-${id}`);
+  if (!extra) return;
+  const exp = state.expenses.find(e => e.id === id);
+  if (type === 'equal') { extra.innerHTML = ''; return; }
+  if (type === 'select') {
+    extra.innerHTML = `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">` +
+      state.participants.map(p => {
+        const c = colorFor(p); const inSplit = (exp.splits[p] || 0) > 0;
+        return `<label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:5px 10px;border-radius:100px;border:1.5px solid ${c}40;background:${c}10;font-size:12px;font-weight:600;color:${c};">
+          <input type="checkbox" id="es-${id}-${p}" ${inSplit ? 'checked' : ''} style="width:auto;accent-color:${c};"/>
+          ${p}</label>`;
+      }).join('') + `</div>`;
+  }
+  if (type === 'custom') {
+    extra.innerHTML = `<div class="custom-splits-grid" style="margin-top:8px;">` +
+      state.participants.map(p => {
+        const c = colorFor(p); const val = (exp.splits[p] || 0).toFixed(2);
+        return `<div class="custom-split-field" style="border-color:${c}30;">
+          <label style="color:${c};">${p}</label>
+          <input type="number" id="ec-${id}-${p}" value="${val}" step="any" inputmode="decimal"/>
+        </div>`;
+      }).join('') + `</div>`;
+  }
+}
+
+function saveExpenseEdit(id) {
+  const exp = state.expenses.find(e => e.id === id);
+  if (!exp) return;
+  exp.paidBy = editPayerSel[id] || exp.paidBy;
+  const st = editSplitSel[id] || 'equal';
+  if (st === 'equal') {
+    const each = exp.amount / state.participants.length;
+    state.participants.forEach(p => exp.splits[p] = each);
+  } else if (st === 'select') {
+    const sel = state.participants.filter(p => document.getElementById(`es-${id}-${p}`)?.checked);
+    if (sel.length) {
+      const each = exp.amount / sel.length;
+      state.participants.forEach(p => exp.splits[p] = sel.includes(p) ? each : 0);
+    }
+  } else {
+    state.participants.forEach(p => {
+      exp.splits[p] = parseFloat(document.getElementById(`ec-${id}-${p}`)?.value || 0);
+    });
+  }
+  save();
+  editingId = null;
+  renderExpensesList();
+}
+
+function renderExpensesList() {
+  const listEl = document.getElementById('expenses-list');
+  const totalBar = document.getElementById('total-bar');
+  const totalVal = document.getElementById('total-value');
+
+  if (!state.expenses.length) {
+    listEl.innerHTML = '<div class="empty-state"><div class="icon">🧾</div>Todavía no cargaste gastos</div>';
+    totalBar.style.display = 'none';
+    return;
+  }
+
+  const sym = { ARS:'$', USD:'US$', EUR:'€', CLP:'$', BRL:'R$', UYU:'$', MXN:'$' }[state.baseCurrency] || '$';
+  const totalBase = state.expenses.reduce((s, e) => s + e.amountInBase, 0);
+  totalVal.textContent = `${sym}${totalBase.toFixed(2)} ${state.baseCurrency}`;
+  totalBar.style.display = 'flex';
+
+  listEl.innerHTML = state.expenses.map((e, idx) => {
+    const payerColor = colorFor(e.paidBy);
+    const participants = Object.entries(e.splits).filter(([,v]) => v > 0).map(([p]) => p);
+    const sameBase = e.currency === state.baseCurrency;
+    const isEditing = editingId === e.id;
+    const delay = `animation-delay:${idx * 40}ms`;
+
+    // Edit panel
+    const editPanel = isEditing ? `
+      <div class="expense-edit-panel">
+        <div class="edit-label">¿Quién pagó?</div>
+        <div class="edit-payer-grid">
+          ${state.participants.map(p => {
+            const c = colorFor(p); const sel = (editPayerSel[e.id] || e.paidBy) === p;
+            return `<button class="edit-payer-btn ${sel ? 'sel' : ''}" data-ep="${e.id}" data-name="${p}" data-color="${c}"
+              onclick="setEditPayer(${e.id}, '${p}')"
+              style="border-color:${sel ? c : 'var(--border)'}; background:${sel ? c+'15' : 'var(--surface)'}; color:${sel ? c : 'var(--muted)'};">
+              <div class="edit-payer-avatar" style="background:${c}; opacity:${sel ? 1 : 0.6}">${initials(p)}</div>
+              ${p}
+            </button>`;
+          }).join('')}
+        </div>
+        <div class="edit-label">Forma de dividir</div>
+        <div class="split-toggle">
+          <button class="split-option active" data-esplit="${e.id}" data-val="equal" onclick="setEditSplit(${e.id},'equal')">Igual entre todos</button>
+          <button class="split-option" data-esplit="${e.id}" data-val="select" onclick="setEditSplit(${e.id},'select')">Solo algunos</button>
+          <button class="split-option" data-esplit="${e.id}" data-val="custom" onclick="setEditSplit(${e.id},'custom')">Montos exactos</button>
+        </div>
+        <div id="edit-split-extra-${e.id}"></div>
+        <div class="edit-actions">
+          <button class="btn btn-primary btn-sm" onclick="saveExpenseEdit(${e.id})">Guardar</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleEdit(${e.id})">Cancelar</button>
+        </div>
+      </div>` : '';
+
+    return `<div class="expense-card ${isEditing ? 'editing' : ''}" style="${delay}">
+      <div class="expense-card-main">
+        <div class="expense-card-icon" style="background:${payerColor}12;">${e.emoji}</div>
+        <div class="expense-card-body">
+          <div class="expense-card-desc">${e.description}</div>
+          <div class="expense-card-meta">
+            <span class="meta-payer-dot" style="background:${payerColor};">${initials(e.paidBy)}</span>
+            <span style="font-weight:600; color:${payerColor};">${e.paidBy} pagó</span>
+            <span class="meta-sep">·</span>
+            <span>${participants.join(', ')}</span>
+          </div>
+        </div>
+        <div class="expense-card-right">
+          <div class="expense-card-amount">
+            <div class="main">${sym}${e.amountInBase.toFixed(2)}</div>
+            ${!sameBase ? `<div class="sub">${e.amount.toFixed(2)} ${e.currency}</div>` : ''}
+          </div>
+          <button class="btn-card edit ${isEditing ? 'active' : ''}" onclick="toggleEdit(${e.id})"
+            style="${isEditing ? 'color:var(--accent);background:var(--accent-light);' : ''}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button class="btn-card del" onclick="removeExpense(${e.id})">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      ${editPanel}
+    </div>`;
+  }).join('');
+}
+
+// ─── LIQUIDACIÓN ──────────────────────────────────────────────────────────────
+function calcularLiquidacion() {
+  const errEl = document.getElementById('error-box');
+  errEl.style.display = 'none';
+
+  if (!state.expenses.length) {
+    errEl.textContent = 'No hay gastos cargados.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // 1. PAGOS (en base)
+  const pagos = {};
+  state.expenses.forEach(e => {
+    const monto = Math.round(e.amountInBase * 100);
+    pagos[e.paidBy] = (pagos[e.paidBy] || 0) + monto;
+  });
+
+  // 2. CONSUMOS (en base)
+  const consumos = {};
+  state.expenses.forEach(e => {
+    const currObj = allCurrencies().find(c => c.code === e.currency);
+    // splits are in e.currency units
+    // amountInBase / amount = conversion factor
+    const convFactor = e.amount > 0 ? e.amountInBase / e.amount : 1;
+    Object.entries(e.splits).forEach(([persona, montoMoneda]) => {
+      const montoBase = Math.round(montoMoneda * convFactor * 100);
+      consumos[persona] = (consumos[persona] || 0) + montoBase;
+    });
+  });
+
+  // 3. TOLERANCIA
+  const totalP = Object.values(pagos).reduce((a, b) => a + b, 0);
+  const totalC = Object.values(consumos).reduce((a, b) => a + b, 0);
+  if (Math.abs(totalP - totalC) > 100) {
+    errEl.innerHTML = `Los totales no cuadran.<br><small>Pagado: ${(totalP/100).toFixed(2)} · Consumido: ${(totalC/100).toFixed(2)}</small>`;
+    errEl.style.display = 'block';
+  }
+
+  // 4. BALANCES
+  const personas = new Set([...Object.keys(pagos), ...Object.keys(consumos)]);
+  const balances = {};
+  const resumen = [];
+  personas.forEach(p => {
+    const pago = pagos[p] || 0;
+    const consumo = consumos[p] || 0;
+    balances[p] = pago - consumo;
+    resumen.push({ persona: p, pago, consumo, balance: pago - consumo });
+  });
+
+  const sym = { ARS:'$', USD:'US$', EUR:'€', CLP:'$', BRL:'R$', UYU:'$', MXN:'$' }[state.baseCurrency] || '$';
+
+  const tbody = document.getElementById('balance-tbody');
+  tbody.innerHTML = resumen.map(r => {
+    const cls = r.balance > 0 ? 'text-green fw-700' : r.balance < 0 ? 'text-red fw-700' : 'text-muted';
+    const sign = r.balance > 0 ? '+' : '';
+    const color = colorFor(r.persona);
+    return `<tr>
+      <td><div class="avatar-cell">
+        <div class="mini-avatar" style="background:${color};">${initials(r.persona)}</div>
+        ${r.persona}
+      </div></td>
+      <td>${sym}${(r.pago/100).toFixed(2)}</td>
+      <td>${sym}${(r.consumo/100).toFixed(2)}</td>
+      <td class="${cls}">${sign}${sym}${(r.balance/100).toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+
+  // 5. COMPENSACIÓN
+  const deudores = resumen.filter(r => r.balance < 0)
+    .map(r => ({ persona: r.persona, monto: Math.abs(r.balance) }))
+    .sort((a, b) => b.monto - a.monto);
+  const acreedores = resumen.filter(r => r.balance > 0)
+    .map(r => ({ persona: r.persona, monto: r.balance }))
+    .sort((a, b) => b.monto - a.monto);
+
+  _liquidacion = [];
+  let i = 0, j = 0;
+  while (i < deudores.length && j < acreedores.length) {
+    const d = deudores[i], a = acreedores[j];
+    const pago = Math.min(d.monto, a.monto);
+    if (pago > 0) { _liquidacion.push({ deudor: d.persona, acreedor: a.persona, monto: pago }); d.monto -= pago; a.monto -= pago; }
+    if (d.monto === 0) i++;
+    if (a.monto === 0) j++;
+  }
+
+  const settEl = document.getElementById('settlements-list');
+  if (!_liquidacion.length) {
+    settEl.innerHTML = '<div class="empty-state"><div class="icon">🎉</div>¡Todos están a mano!</div>';
+  } else {
+    settEl.innerHTML = _liquidacion.map((l, idx) => {
+      const dc = colorFor(l.deudor);
+      const ac = colorFor(l.acreedor);
+      const montoFmt = (l.monto/100).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `<div class="transfer-card" style="animation-delay:${idx * 90}ms">
+        <div class="transfer-body">
+          <div class="transfer-person">
+            <div class="transfer-avatar" style="background:${dc};">${initials(l.deudor)}</div>
+            <div class="transfer-name">${l.deudor}</div>
+            <span class="transfer-role paga">Paga</span>
+          </div>
+          <div class="transfer-arrow">
+            <svg width="44" height="28" viewBox="0 0 44 28" fill="none">
+              <defs>
+                <linearGradient id="ag${idx}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="${dc}"/>
+                  <stop offset="100%" stop-color="${ac}"/>
+                </linearGradient>
+              </defs>
+              <path d="M2 14 L36 14" stroke="url(#ag${idx})" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 3"/>
+              <path d="M28 6 L38 14 L28 22" stroke="url(#ag${idx})" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="transfer-person">
+            <div class="transfer-avatar" style="background:${ac};">${initials(l.acreedor)}</div>
+            <div class="transfer-name">${l.acreedor}</div>
+            <span class="transfer-role recibe">Recibe</span>
+          </div>
+        </div>
+        <div class="transfer-amount-bar">
+          <span class="transfer-amount-label">Transferencia</span>
+          <div style="text-align:right;">
+            <div class="transfer-amount-value">${sym}${montoFmt}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function renderAltCurrencySection() {
+  const sel = document.getElementById('alt-currency-select');
+  const section = document.getElementById('alt-currency-section');
+  if (!state.extraCurrencies.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  sel.innerHTML = '<option value="">Seleccionar...</option>' +
+    state.extraCurrencies.map(c => `<option value="${c.code}">${c.code}</option>`).join('');
+}
+
+function renderAltAmounts() {
+  const code = document.getElementById('alt-currency-select').value;
+  const listEl = document.getElementById('alt-amounts-list');
+  if (!code || !_liquidacion.length) { listEl.innerHTML = ''; return; }
+  const currObj = state.extraCurrencies.find(c => c.code === code);
+  if (!currObj) return;
+  const sym = { ARS:'$', USD:'US$', EUR:'€', CLP:'$', BRL:'R$', UYU:'$', MXN:'$' }[state.baseCurrency] || '$';
+  // 1 BASE = currObj.rate EXTRA → amountInBase * currObj.rate = amountInExtra
+  listEl.innerHTML = _liquidacion.map((l, idx) => {
+    const montoBase = l.monto / 100;
+    const montoAlt = montoBase * currObj.rate;
+    const dc = colorFor(l.deudor);
+    const ac = colorFor(l.acreedor);
+    return `<div class="transfer-card" style="animation-delay:${idx * 90}ms">
+      <div class="transfer-body">
+        <div class="transfer-person">
+          <div class="transfer-avatar" style="background:${dc};">${initials(l.deudor)}</div>
+          <div class="transfer-name">${l.deudor}</div>
+          <span class="transfer-role paga">Paga</span>
+        </div>
+        <div class="transfer-arrow">
+          <svg width="44" height="28" viewBox="0 0 44 28" fill="none">
+            <defs>
+              <linearGradient id="aga${idx}" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="${dc}"/>
+                <stop offset="100%" stop-color="${ac}"/>
+              </linearGradient>
+            </defs>
+            <path d="M2 14 L36 14" stroke="url(#aga${idx})" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 3"/>
+            <path d="M28 6 L38 14 L28 22" stroke="url(#aga${idx})" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="transfer-person">
+          <div class="transfer-avatar" style="background:${ac};">${initials(l.acreedor)}</div>
+          <div class="transfer-name">${l.acreedor}</div>
+          <span class="transfer-role recibe">Recibe</span>
+        </div>
+      </div>
+      <div class="transfer-amount-bar">
+        <span class="transfer-amount-label">Transferencia</span>
+        <div style="text-align:right;">
+          <div class="transfer-amount-value">${Math.round(montoAlt).toLocaleString('es-AR')} ${code}</div>
+          <div class="transfer-amount-alt">${sym}${montoBase.toFixed(2)} ${state.baseCurrency}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── HISTORIAL ────────────────────────────────────────────────────────────────
+const HISTORY_KEY = 'divisor-history-v1';
+const MAX_HISTORY = 20;
+
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; }
+}
+function saveHistory(list) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+}
+
+function _saveToHistory() {
+  const history = loadHistory();
+  const totalBase = state.expenses.reduce((s, e) => s + e.amountInBase, 0);
+  const entry = {
+    id: Date.now().toString(),
+    savedAt: new Date().toISOString(),
+    tripName: state.tripName || 'Sin nombre',
+    participants: [...state.participants],
+    expenseCount: state.expenses.length,
+    baseCurrency: state.baseCurrency,
+    totalBase,
+    snapshot: JSON.parse(JSON.stringify(state))
+  };
+  history.unshift(entry);
+  if (history.length > MAX_HISTORY) history.splice(MAX_HISTORY);
+  saveHistory(history);
+  updateHistoryBadge();
+}
+
+function deleteSession(id, e) {
+  e.stopPropagation();
+  const history = loadHistory().filter(s => s.id !== id);
+  saveHistory(history);
+  updateHistoryBadge();
+  renderHistoryList();
+  showToast('🗑️ Sesión eliminada');
+}
+
+function loadSession(id) {
+  const entry = loadHistory().find(s => s.id === id);
+  if (!entry) return;
+  if (!confirm(`¿Cargar la sesión "${entry.tripName}"? Los datos actuales se reemplazarán.`)) return;
+  state = JSON.parse(JSON.stringify(entry.snapshot));
+  save();
+  closeHistory();
+  applyStateToUI();
+  showToast(`📂 "${entry.tripName}" cargada`);
+}
+
+function applyStateToUI() {
+  document.getElementById('trip-name').value = state.tripName;
+  document.getElementById('base-currency-select').value = state.baseCurrency;
+  renderHeaderName();
+  renderChips();
+  renderExtraCurrencies();
+  renderPayerGrid();
+  renderExpensesList();
+  renderCurrencyRateLabel();
+  goToStep(1);
+}
+
+function updateHistoryBadge() {
+  const count = loadHistory().length;
+  const badge = document.getElementById('history-count');
+  const btn = document.getElementById('btn-history');
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function renderHistoryList() {
+  const el = document.getElementById('history-list');
+  const history = loadHistory();
+  if (!history.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">📂</div>Sin sesiones guardadas</div>';
+    return;
+  }
+  const sym = (cur) => ({ ARS:'$', USD:'US$', EUR:'€', CLP:'$', BRL:'R$', UYU:'$', MXN:'$' }[cur] || '$');
+  el.innerHTML = history.map((s, i) => {
+    const date = new Date(s.savedAt);
+    const dateStr = date.toLocaleDateString('es-AR', { day:'2-digit', month:'short', year:'numeric' });
+    const timeStr = date.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' });
+    const avatars = s.participants.slice(0, 5).map(p =>
+      `<span class="session-avatar-sm" style="background:${colorFor(p)};">${initials(p)}</span>`
+    ).join('');
+    const extra = s.participants.length > 5 ? `<span class="session-avatar-sm" style="background:var(--muted);">+${s.participants.length - 5}</span>` : '';
+    return `<div class="session-card" style="animation-delay:${i * 40}ms" onclick="loadSession('${s.id}')">
+      <div class="session-card-top">
+        <div class="session-card-name">${s.tripName}</div>
+        <div class="session-card-date">${dateStr} · ${timeStr}</div>
+      </div>
+      <div class="session-card-meta">
+        <div style="display:flex; gap:0;">${avatars}${extra}</div>
+        <span class="session-card-badge">💳 ${s.expenseCount} gastos</span>
+        <span class="session-card-badge" style="background:var(--green-light); color:var(--green);">
+          ${sym(s.baseCurrency)}${s.totalBase.toLocaleString('es-AR', {maximumFractionDigits:0})} ${s.baseCurrency}
+        </span>
+      </div>
+      <div class="session-card-actions">
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="loadSession('${s.id}')">📂 Cargar</button>
+        <button class="btn btn-ghost btn-sm" onclick="shareSession('${s.id}', event)">🔗 Compartir</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteSession('${s.id}', event)">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── HISTORIAL DRAWER ─────────────────────────────────────────────────────────
+function openHistory() {
+  renderHistoryList();
+  document.getElementById('history-overlay').style.display = 'flex';
+}
+function closeHistory() {
+  document.getElementById('history-overlay').style.display = 'none';
+}
+function closeHistoryIfOverlay(e) {
+  if (e.target === document.getElementById('history-overlay')) closeHistory();
+}
+
+// ─── SHARE (server-side) ──────────────────────────────────────────────────────
+let _isSharedView = false;
+
+async function _postSession(snapshot) {
+  const res = await fetch('/api/session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(snapshot),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || res.status);
+  }
+  const { id } = await res.json();
+  return `${location.origin}${location.pathname}?gasto=${id}`;
+}
+
+async function saveAndShare() {
+  if (!state.expenses.length && !state.participants.length) {
+    showToast('⚠️ No hay datos para compartir');
+    return;
+  }
+  const btn = document.getElementById('btn-compartir');
+  btn.disabled = true;
+  btn.textContent = 'Generando…';
+  try {
+    _saveToHistory();
+    const url = await _postSession(state);
+    await navigator.clipboard.writeText(url).catch(() => {});
+    showToast('🔗 Link copiado — sesión guardada en historial');
+  } catch (err) {
+    console.error(err);
+    showToast('⚠️ Error al generar el link');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Compartir`;
+  }
+}
+
+async function shareSession(id, e) {
+  e.stopPropagation();
+  const entry = loadHistory().find(s => s.id === id);
+  if (!entry) return;
+  try {
+    const url = await _postSession(entry.snapshot);
+    await navigator.clipboard.writeText(url).catch(() => {});
+    showToast('🔗 Link copiado al portapapeles');
+  } catch { showToast('⚠️ Error al generar el link'); }
+}
+
+// ─── SHARED SESSION DETECTION ─────────────────────────────────────────────────
+async function checkSharedUrl() {
+  const params = new URLSearchParams(location.search);
+  const gasto = params.get('gasto');
+  if (!gasto) return;
+
+  // Remove param from URL without reload
+  history.replaceState({}, '', location.pathname);
+
+  try {
+    const res = await fetch(`/api/session/${gasto}`);
+    if (!res.ok) { showToast('⚠️ Sesión no encontrada'); return; }
+    const shared = await res.json();
+
+    _isSharedView = true;
+    state = shared;
+    // Do NOT save to localStorage — read-only view
+    applyStateToUIReadOnly();
+    goToStep(4);
+    showSharedBanner(shared.tripName);
+  } catch { showToast('⚠️ Error al cargar la sesión'); }
+}
+
+function applyStateToUIReadOnly() {
+  document.getElementById('trip-name').value = state.tripName;
+  document.getElementById('base-currency-select').value = state.baseCurrency;
+  renderHeaderName();
+  renderChips();
+  renderExtraCurrencies();
+  renderPayerGrid();
+  renderExpensesList();
+  renderCurrencyRateLabel();
+}
+
+function showSharedBanner(tripName) {
+  const banner = document.getElementById('shared-banner');
+  banner.innerHTML = `<div class="shared-banner">
+    <div style="flex:1;">
+      <div class="shared-banner-text">👁️ Vista compartida: <strong>${tripName || 'Sin nombre'}</strong></div>
+      <div class="shared-banner-sub">Solo lectura · no se guarda en tu historial</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.3);color:white;" onclick="startNewSession()">+ Nueva sesión</button>
+    <button style="color:white;background:rgba(255,255,255,0.15);border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;" onclick="dismissSharedBanner()">✕</button>
+  </div>`;
+  banner.style.display = 'block';
+}
+
+function dismissSharedBanner() {
+  const b = document.getElementById('shared-banner');
+  b.innerHTML = ''; b.style.display = 'none';
+}
+
+function startNewSession() {
+  _isSharedView = false;
+  state = { tripName:'', participants:[], baseCurrency:'ARS', extraCurrencies:[], expenses:[] };
+  save();
+  dismissSharedBanner();
+  applyStateToUI();
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let _toastTimer;
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  clearTimeout(_toastTimer);
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  _toastTimer = setTimeout(() => {
+    t.classList.add('out');
+    setTimeout(() => t.remove(), 300);
+  }, 2800);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.getElementById('trip-name').value = state.tripName;
+document.getElementById('base-currency-select').value = state.baseCurrency;
+renderHeaderName();
+renderChips();
+renderExtraCurrencies();
+renderPayerGrid();
+renderExpensesList();
+renderCurrencyRateLabel();
+updateHistoryBadge();
+checkSharedUrl();
+</script> </body> </html>
