@@ -10,13 +10,43 @@ const HEIGHT = 630;
 const VALID_ID_REGEX = /^[a-z0-9]{4,10}$/;
 const APP_EMOJI_POOL = ['💸', '🍻', '🧉', '🎉', '😎', '🍕', '🚕', '🏝️'];
 
+const parseMoneyValue = (value: unknown): number => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value !== 'string') return NaN;
+
+  const raw = value.trim();
+  if (!raw) return NaN;
+
+  const clean = raw.replace(/[^\d,.-]/g, '');
+  if (!clean) return NaN;
+
+  const lastComma = clean.lastIndexOf(',');
+  const lastDot = clean.lastIndexOf('.');
+
+  let normalized = clean;
+  if (lastComma > -1 && lastDot > -1) {
+    const decimalSep = lastComma > lastDot ? ',' : '.';
+    const groupSep = decimalSep === ',' ? '.' : ',';
+    normalized = clean
+      .replace(new RegExp(`\\${groupSep}`, 'g'), '')
+      .replace(decimalSep, '.');
+  } else if (lastComma > -1) {
+    normalized = clean.replace(/\./g, '').replace(',', '.');
+  } else {
+    normalized = clean.replace(/,/g, '');
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : NaN;
+};
+
 const sumExpensesBase = (expenses: unknown): number => {
   if (!Array.isArray(expenses)) return 0;
 
   return expenses.reduce((acc, expense) => {
     const row = expense as Record<string, unknown>;
-    const base = Number(row.amountInBase);
-    const amount = Number(row.amount);
+    const base = parseMoneyValue(row.amountInBase);
+    const amount = parseMoneyValue(row.amount);
 
     if (Number.isFinite(base)) return acc + base;
     if (Number.isFinite(amount)) return acc + amount;
@@ -25,8 +55,9 @@ const sumExpensesBase = (expenses: unknown): number => {
 };
 
 const getTensionAmount = (value: number): string => {
-  const digits = Math.abs(Math.round(value)).toString();
-  return `${digits.slice(0, 3)}...`;
+  const rawDigits = Math.abs(Math.round(value)).toString().replace(/\D/g, '');
+  const head = (rawDigits || '0').slice(0, 3).padEnd(3, '0');
+  return `${head}...`;
 };
 
 const getEmojiTrio = (seedText: string): string[] => {
