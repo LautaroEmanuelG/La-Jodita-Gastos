@@ -1,1292 +1,2228 @@
 ---
+
 ---
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Divisor de Gastos</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236c5ce7'/><line x1='16' y1='4' x2='16' y2='28' stroke='white' stroke-width='3' stroke-linecap='round'/><path d='M22 9H13a4.5 4.5 0 0 0 0 9h6a4.5 4.5 0 0 1 0 9H8' stroke='white' stroke-width='3' stroke-linecap='round'/></svg>" />
-  <style is:global>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Divisor de Gastos</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236c5ce7'/><line x1='16' y1='4' x2='16' y2='28' stroke='white' stroke-width='3' stroke-linecap='round'/><path d='M22 9H13a4.5 4.5 0 0 0 0 9h6a4.5 4.5 0 0 1 0 9H8' stroke='white' stroke-width='3' stroke-linecap='round'/></svg>"
+    />
+    <style is:global>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-    :root {
-      --bg: #f0eeff;
-      --surface: #ffffff;
-      --surface2: #f7f5ff;
-      --border: #e4e0f8;
-      --text: #1e1b3a;
-      --muted: #7c7a9a;
-      --accent: #6c5ce7;
-      --accent-light: #ece9fd;
-      --accent-mid: #a29bfe;
-      --green: #00b894;
-      --green-light: #d4f5ec;
-      --red: #e17055;
-      --red-light: #fde8e1;
-      --yellow: #fdcb6e;
-      --shadow: 0 4px 24px rgba(108,92,231,0.08);
-      --shadow-sm: 0 2px 8px rgba(108,92,231,0.06);
-      --radius: 16px;
-      --radius-sm: 10px;
-    }
+      :root {
+        --bg: #f0eeff;
+        --surface: #ffffff;
+        --surface2: #f7f5ff;
+        --border: #e4e0f8;
+        --text: #1e1b3a;
+        --muted: #7c7a9a;
+        --accent: #6c5ce7;
+        --accent-light: #ece9fd;
+        --accent-mid: #a29bfe;
+        --green: #00b894;
+        --green-light: #d4f5ec;
+        --red: #e17055;
+        --red-light: #fde8e1;
+        --yellow: #fdcb6e;
+        --shadow: 0 4px 24px rgba(108, 92, 231, 0.08);
+        --shadow-sm: 0 2px 8px rgba(108, 92, 231, 0.06);
+        --radius: 16px;
+        --radius-sm: 10px;
+      }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-      line-height: 1.5;
-      min-height: 100vh;
-    }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.5;
+        min-height: 100vh;
+      }
 
-    /* ── HEADER ── */
-    header {
-      background: white;
-      border-bottom: 1px solid var(--border);
-      padding: 14px 24px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: var(--shadow-sm);
-    }
-    header .logo { width: 28px; height: 28px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-    header .logo svg { width: 16px; height: 16px; }
-    header h1 { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
-    header .trip-name { color: var(--muted); font-size: 13px; }
-    header .trip-name::before { content: '·'; margin: 0 6px; }
+      /* ── HEADER ── */
+      header {
+        background: white;
+        border-bottom: 1px solid var(--border);
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: var(--shadow-sm);
+      }
+      header .logo {
+        width: 28px;
+        height: 28px;
+        background: var(--accent);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      header .logo svg {
+        width: 16px;
+        height: 16px;
+      }
+      header h1 {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: -0.3px;
+      }
+      header .trip-name {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      header .trip-name::before {
+        content: '·';
+        margin: 0 6px;
+      }
 
-    /* ── STEPPER ── */
-    .stepper-wrap {
-      background: white;
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-    }
-    .stepper {
-      max-width: 640px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      padding: 14px 0;
-      gap: 0;
-    }
-    .step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      flex: 1;
-      cursor: pointer;
-      position: relative;
-    }
-    .step:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      top: 14px;
-      left: calc(50% + 14px);
-      right: calc(-50% + 14px);
-      height: 2px;
-      background: var(--border);
-      transition: background 0.4s;
-      z-index: 0;
-    }
-    .step.done:not(:last-child)::after { background: var(--accent-mid); }
-    .step-bubble {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      background: var(--surface2);
-      border: 2px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 700;
-      color: var(--muted);
-      transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
-      position: relative; z-index: 1;
-    }
-    .step.active .step-bubble {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: white;
-      transform: scale(1.15);
-      box-shadow: 0 0 0 4px var(--accent-light);
-    }
-    .step.done .step-bubble {
-      background: var(--accent-mid);
-      border-color: var(--accent-mid);
-      color: white;
-    }
-    .step-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      color: var(--muted);
-      text-transform: uppercase;
-      transition: color 0.2s;
-      white-space: nowrap;
-    }
-    .step.active .step-label { color: var(--accent); }
-    .step.done .step-label { color: var(--accent-mid); }
+      /* ── STEPPER ── */
+      .stepper-wrap {
+        background: white;
+        border-bottom: 1px solid var(--border);
+        padding: 0 24px;
+      }
+      .stepper {
+        max-width: 640px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        padding: 14px 0;
+        gap: 0;
+      }
+      .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        flex: 1;
+        cursor: pointer;
+        position: relative;
+      }
+      .step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 14px;
+        left: calc(50% + 14px);
+        right: calc(-50% + 14px);
+        height: 2px;
+        background: var(--border);
+        transition: background 0.4s;
+        z-index: 0;
+      }
+      .step.done:not(:last-child)::after {
+        background: var(--accent-mid);
+      }
+      .step-bubble {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--surface2);
+        border: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        z-index: 1;
+      }
+      .step.active .step-bubble {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+        transform: scale(1.15);
+        box-shadow: 0 0 0 4px var(--accent-light);
+      }
+      .step.done .step-bubble {
+        background: var(--accent-mid);
+        border-color: var(--accent-mid);
+        color: white;
+      }
+      .step-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        color: var(--muted);
+        text-transform: uppercase;
+        transition: color 0.2s;
+        white-space: nowrap;
+      }
+      .step.active .step-label {
+        color: var(--accent);
+      }
+      .step.done .step-label {
+        color: var(--accent-mid);
+      }
 
-    /* ── MAIN ── */
-    .container { max-width: 640px; margin: 0 auto; padding: 28px 20px 80px; }
+      /* ── MAIN ── */
+      .container {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 28px 20px 80px;
+      }
 
-    /* ── PANELS ── */
-    .panel { display: none; animation: fadeSlideUp 0.35s cubic-bezier(.25,.8,.25,1) both; }
-    .panel.active { display: block; }
-    @keyframes fadeSlideUp {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+      /* ── PANELS ── */
+      .panel {
+        display: none;
+        animation: fadeSlideUp 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+      }
+      .panel.active {
+        display: block;
+      }
+      @keyframes fadeSlideUp {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-    /* ── CARDS ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow-sm);
-    }
-    .card-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      letter-spacing: -0.3px;
-    }
-    .card-sub {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 20px;
-    }
+      /* ── CARDS ── */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        margin-bottom: 16px;
+        box-shadow: var(--shadow-sm);
+      }
+      .card-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        letter-spacing: -0.3px;
+      }
+      .card-sub {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 20px;
+      }
 
-    /* ── INPUTS ── */
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.6px;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    input[type="text"], input[type="number"], select {
-      background: var(--surface2);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text);
-      padding: 11px 14px;
-      font-size: 14px;
-      outline: none;
-      width: 100%;
-      font-family: inherit;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    input:focus, select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-light);
-    }
-    input::placeholder { color: var(--muted); }
+      /* ── INPUTS ── */
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      input[type='text'],
+      input[type='number'],
+      select {
+        background: var(--surface2);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 11px 14px;
+        font-size: 14px;
+        outline: none;
+        width: 100%;
+        font-family: inherit;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      input:focus,
+      select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-light);
+      }
+      input::placeholder {
+        color: var(--muted);
+      }
 
-    /* Big amount input */
-    .amount-input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      background: var(--surface2);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .amount-input-wrap:focus-within {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-light);
-    }
-    .amount-prefix {
-      padding: 0 12px 0 16px;
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--muted);
-    }
-    .amount-input-wrap input[type="number"] {
-      border: none;
-      background: transparent;
-      box-shadow: none;
-      font-size: 28px;
-      font-weight: 700;
-      padding: 14px 0;
-      color: var(--text);
-      flex: 1;
-    }
-    .amount-input-wrap input:focus { box-shadow: none; }
-    .amount-currency-btn {
-      background: var(--accent-light);
-      color: var(--accent);
-      border: none;
-      padding: 0 16px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      height: 100%;
-      transition: background 0.2s;
-      display: flex; align-items: center; gap: 4px;
-    }
-    .amount-currency-btn:hover { background: var(--accent); color: white; }
+      /* Big amount input */
+      .amount-input-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        background: var(--surface2);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .amount-input-wrap:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-light);
+      }
+      .amount-prefix {
+        padding: 0 12px 0 16px;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .amount-input-wrap input[type='number'] {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        font-size: 28px;
+        font-weight: 700;
+        padding: 14px 0;
+        color: var(--text);
+        flex: 1;
+      }
+      .amount-input-wrap input:focus {
+        box-shadow: none;
+      }
+      .amount-currency-btn {
+        background: var(--accent-light);
+        color: var(--accent);
+        border: none;
+        padding: 0 16px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        height: 100%;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .amount-currency-btn:hover {
+        background: var(--accent);
+        color: white;
+      }
 
-    /* ── BUTTONS ── */
-    .btn {
-      padding: 11px 20px;
-      border-radius: var(--radius-sm);
-      border: none;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-family: inherit;
-      white-space: nowrap;
-    }
-    .btn:active { transform: scale(0.97); }
-    .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(108,92,231,0.3); }
-    .btn-primary:hover { background: #5a4ed1; box-shadow: 0 6px 16px rgba(108,92,231,0.4); }
-    .btn-ghost { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
-    .btn-ghost:hover { border-color: var(--accent-mid); color: var(--accent); }
-    .btn-success { background: var(--green); color: white; box-shadow: 0 4px 12px rgba(0,184,148,0.25); }
-    .btn-success:hover { background: #00a381; }
-    .btn-full { width: 100%; justify-content: center; }
-    .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
-    .btn-icon { padding: 8px; border-radius: 8px; }
+      /* ── BUTTONS ── */
+      .btn {
+        padding: 11px 20px;
+        border-radius: var(--radius-sm);
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        white-space: nowrap;
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: white;
+        box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+      }
+      .btn-primary:hover {
+        background: #5a4ed1;
+        box-shadow: 0 6px 16px rgba(108, 92, 231, 0.4);
+      }
+      .btn-ghost {
+        background: var(--surface2);
+        color: var(--text);
+        border: 1.5px solid var(--border);
+      }
+      .btn-ghost:hover {
+        border-color: var(--accent-mid);
+        color: var(--accent);
+      }
+      .btn-success {
+        background: var(--green);
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 184, 148, 0.25);
+      }
+      .btn-success:hover {
+        background: #00a381;
+      }
+      .btn-full {
+        width: 100%;
+        justify-content: center;
+      }
+      .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 8px;
+      }
+      .btn-icon {
+        padding: 8px;
+        border-radius: 8px;
+      }
 
-    /* ── NAV ACTIONS ── */
-    .nav-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 24px;
-    }
-    .nav-actions .spacer { flex: 1; }
+      /* ── NAV ACTIONS ── */
+      .nav-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 24px;
+      }
+      .nav-actions .spacer {
+        flex: 1;
+      }
 
-    /* ── PARTICIPANTS CHIPS ── */
-    .participants-input-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .participants-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      min-height: 36px;
-    }
-    @keyframes popIn {
-      from { opacity: 0; transform: scale(0.4) rotate(-12deg); }
-      to   { opacity: 1; transform: scale(1) rotate(0); }
-    }
-    .participants-chips { gap: 10px; }
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 0;
-      border-radius: 100px;
-      padding: 4px 6px 4px 4px;
-      animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1) both;
-      transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s;
-      cursor: default;
-      user-select: none;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-    }
-    .chip:hover {
-      transform: translateY(-3px) scale(1.04);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-    }
-    .chip-avatar {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px;
-      font-weight: 800;
-      color: white;
-      flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-      letter-spacing: -0.5px;
-    }
-    .chip-name {
-      padding: 0 10px 0 9px;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: -0.2px;
-    }
-    .chip-remove {
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.09);
-      border: none;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s, transform 0.2s cubic-bezier(.34,1.56,.64,1);
-      flex-shrink: 0;
-      color: inherit;
-    }
-    .chip-remove:hover { background: rgba(0,0,0,0.2); transform: scale(1.2) rotate(90deg); }
-    .chip-remove svg { width: 10px; height: 10px; stroke-width: 3; }
+      /* ── PARTICIPANTS CHIPS ── */
+      .participants-input-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .participants-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-height: 36px;
+      }
+      @keyframes popIn {
+        from {
+          opacity: 0;
+          transform: scale(0.4) rotate(-12deg);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) rotate(0);
+        }
+      }
+      .participants-chips {
+        gap: 10px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0;
+        border-radius: 100px;
+        padding: 4px 6px 4px 4px;
+        animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        transition:
+          transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+          box-shadow 0.2s;
+        cursor: default;
+        user-select: none;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+      }
+      .chip:hover {
+        transform: translateY(-3px) scale(1.04);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      }
+      .chip-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 800;
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+        letter-spacing: -0.5px;
+      }
+      .chip-name {
+        padding: 0 10px 0 9px;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: -0.2px;
+      }
+      .chip-remove {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.09);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.15s,
+          transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        flex-shrink: 0;
+        color: inherit;
+      }
+      .chip-remove:hover {
+        background: rgba(0, 0, 0, 0.2);
+        transform: scale(1.2) rotate(90deg);
+      }
+      .chip-remove svg {
+        width: 10px;
+        height: 10px;
+        stroke-width: 3;
+      }
 
-    /* Payer avatar buttons */
-    .payer-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 8px;
-    }
-    .payer-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 7px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      border: 2px solid var(--border);
-      background: var(--surface2);
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(.34,1.56,.64,1);
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--muted);
-      font-family: inherit;
-      min-width: 72px;
-    }
-    .payer-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
-    .payer-btn.selected {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    }
-    .payer-avatar {
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-      font-weight: 800;
-      color: white;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.18);
-      letter-spacing: -0.5px;
-      transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), opacity 0.2s;
-    }
-    .payer-btn.selected .payer-avatar { transform: scale(1.12); }
+      /* Payer avatar buttons */
+      .payer-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .payer-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 7px;
+        padding: 12px 16px;
+        border-radius: 14px;
+        border: 2px solid var(--border);
+        background: var(--surface2);
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+        font-family: inherit;
+        min-width: 72px;
+      }
+      .payer-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      }
+      .payer-btn.selected {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      }
+      .payer-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 800;
+        color: white;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+        letter-spacing: -0.5px;
+        transition:
+          transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+          opacity 0.2s;
+      }
+      .payer-btn.selected .payer-avatar {
+        transform: scale(1.12);
+      }
 
-    /* ── EXPENSES LIST ── */
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-12px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .expense-card {
-      background: var(--surface);
-      border: none;
-      border-radius: 14px;
-      margin-bottom: 10px;
-      overflow: hidden;
-      animation: slideIn 0.32s cubic-bezier(.25,.8,.25,1) both;
-      box-shadow: 0 1px 3px rgba(108,92,231,0.06), 0 0 0 1.5px var(--border);
-      transition: box-shadow 0.22s, transform 0.22s;
-    }
-    .expense-card:hover {
-      box-shadow: 0 8px 24px rgba(108,92,231,0.1), 0 0 0 1.5px var(--border);
-      transform: translateY(-1px);
-    }
-    .expense-card.editing {
-      box-shadow: 0 0 0 2.5px var(--accent), 0 8px 24px rgba(108,92,231,0.15);
-      transform: translateY(-1px);
-    }
-    .expense-card-main {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-    }
-    .expense-card-icon {
-      width: 48px; height: 48px;
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 26px;
-      flex-shrink: 0;
-    }
-    .expense-card-body { flex: 1; min-width: 0; }
-    .expense-card-desc { font-weight: 700; font-size: 14px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .expense-card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
-    .meta-payer-dot { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 800; color: white; flex-shrink: 0; }
-    .meta-sep { color: var(--border); }
-    .expense-card-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .expense-card-amount { text-align: right; }
-    .expense-card-amount .main { font-size: 16px; font-weight: 800; line-height: 1.1; }
-    .expense-card-amount .sub { font-size: 10px; color: var(--muted); }
-    .btn-card {
-      width: 32px; height: 32px;
-      border-radius: 9px;
-      border: 1.5px solid var(--border);
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--surface2);
-      transition: all 0.2s cubic-bezier(.34,1.56,.64,1);
-      color: var(--muted);
-      flex-shrink: 0;
-    }
-    .btn-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    .btn-card.edit:hover { color: var(--accent); background: var(--accent-light); border-color: var(--accent-mid); }
-    .btn-card.edit.active { color: var(--accent); background: var(--accent-light); border-color: var(--accent); }
-    .btn-card.del:hover { color: var(--red); background: var(--red-light); border-color: var(--red); }
+      /* ── EXPENSES LIST ── */
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-12px) scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      .expense-card {
+        background: var(--surface);
+        border: none;
+        border-radius: 14px;
+        margin-bottom: 10px;
+        overflow: hidden;
+        animation: slideIn 0.32s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+        box-shadow:
+          0 1px 3px rgba(108, 92, 231, 0.06),
+          0 0 0 1.5px var(--border);
+        transition:
+          box-shadow 0.22s,
+          transform 0.22s;
+      }
+      .expense-card:hover {
+        box-shadow:
+          0 8px 24px rgba(108, 92, 231, 0.1),
+          0 0 0 1.5px var(--border);
+        transform: translateY(-1px);
+      }
+      .expense-card.editing {
+        box-shadow:
+          0 0 0 2.5px var(--accent),
+          0 8px 24px rgba(108, 92, 231, 0.15);
+        transform: translateY(-1px);
+      }
+      .expense-card-main {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+      }
+      .expense-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        flex-shrink: 0;
+      }
+      .expense-card-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .expense-card-desc {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .expense-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .meta-payer-dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: 800;
+        color: white;
+        flex-shrink: 0;
+      }
+      .meta-sep {
+        color: var(--border);
+      }
+      .expense-card-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .expense-card-amount {
+        text-align: right;
+      }
+      .expense-card-amount .main {
+        font-size: 16px;
+        font-weight: 800;
+        line-height: 1.1;
+      }
+      .expense-card-amount .sub {
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .btn-card {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        border: 1.5px solid var(--border);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--surface2);
+        transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        color: var(--muted);
+        flex-shrink: 0;
+      }
+      .btn-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+      .btn-card.edit:hover {
+        color: var(--accent);
+        background: var(--accent-light);
+        border-color: var(--accent-mid);
+      }
+      .btn-card.edit.active {
+        color: var(--accent);
+        background: var(--accent-light);
+        border-color: var(--accent);
+      }
+      .btn-card.del:hover {
+        color: var(--red);
+        background: var(--red-light);
+        border-color: var(--red);
+      }
 
-    /* ── EXPENSE EDIT PANEL ── */
-    .expense-edit-panel {
-      border-top: 1.5px solid var(--border);
-      padding: 16px;
-      background: var(--surface2);
-      animation: fadeSlideUp 0.2s both;
-    }
-    .edit-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.6px;
-      text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
-    }
-    .edit-payer-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-    .edit-payer-btn {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 4px; padding: 7px 10px;
-      border-radius: 10px; border: 2px solid var(--border);
-      background: var(--surface); cursor: pointer;
-      transition: all 0.2s cubic-bezier(.34,1.56,.64,1);
-      font-size: 11px; font-weight: 600; color: var(--muted);
-      font-family: inherit;
-    }
-    .edit-payer-btn:hover { transform: translateY(-2px); border-color: var(--accent-mid); }
-    .edit-payer-btn.sel { border-width: 2.5px; transform: translateY(-2px); }
-    .edit-payer-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: white; }
-    .edit-actions { display: flex; gap: 8px; margin-top: 16px; }
+      /* ── EXPENSE EDIT PANEL ── */
+      .expense-edit-panel {
+        border-top: 1.5px solid var(--border);
+        padding: 16px;
+        background: var(--surface2);
+        animation: fadeSlideUp 0.2s both;
+      }
+      .edit-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .edit-payer-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+      .edit-payer-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 7px 10px;
+        border-radius: 10px;
+        border: 2px solid var(--border);
+        background: var(--surface);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--muted);
+        font-family: inherit;
+      }
+      .edit-payer-btn:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent-mid);
+      }
+      .edit-payer-btn.sel {
+        border-width: 2.5px;
+        transform: translateY(-2px);
+      }
+      .edit-payer-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 800;
+        color: white;
+      }
+      .edit-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+      }
 
-    /* ── SPLIT TOGGLE ── */
-    .split-toggle {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .split-option {
-      padding: 7px 14px;
-      border-radius: 100px;
-      border: 1.5px solid var(--border);
-      background: var(--surface2);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-    .split-option.active {
-      background: var(--accent-light);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
+      /* ── SPLIT TOGGLE ── */
+      .split-toggle {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .split-option {
+        padding: 7px 14px;
+        border-radius: 100px;
+        border: 1.5px solid var(--border);
+        background: var(--surface2);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+      .split-option.active {
+        background: var(--accent-light);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
 
-    /* ── CURRENCIES ── */
-    .currency-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      margin-bottom: 8px;
-      animation: popIn 0.3s cubic-bezier(.34,1.56,.64,1) both;
-    }
-    .currency-badge {
-      width: 40px; height: 40px;
-      border-radius: 10px;
-      background: var(--accent-light);
-      color: var(--accent);
-      font-weight: 800;
-      font-size: 12px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .currency-info { flex: 1; }
-    .currency-code { font-weight: 700; font-size: 14px; }
-    .currency-rate { font-size: 12px; color: var(--muted); }
-    .currency-input { width: 110px; }
-    .currency-input input { padding: 8px 10px; font-size: 13px; }
+      /* ── CURRENCIES ── */
+      .currency-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        margin-bottom: 8px;
+        animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      }
+      .currency-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--accent-light);
+        color: var(--accent);
+        font-weight: 800;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .currency-info {
+        flex: 1;
+      }
+      .currency-code {
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .currency-rate {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .currency-input {
+        width: 110px;
+      }
+      .currency-input input {
+        padding: 8px 10px;
+        font-size: 13px;
+      }
 
-    /* ── SETTLEMENT CARDS ── */
-    @keyframes arrowPulse {
-      0%, 100% { transform: translateX(-3px); opacity: 0.5; }
-      50%       { transform: translateX(3px);  opacity: 1; }
-    }
-    .transfer-card {
-      background: var(--surface);
-      border-radius: 18px;
-      margin-bottom: 14px;
-      overflow: hidden;
-      box-shadow: 0 2px 10px rgba(108,92,231,0.07), 0 0 0 1.5px var(--border);
-      animation: fadeSlideUp 0.38s cubic-bezier(.25,.8,.25,1) both;
-      transition: box-shadow 0.22s, transform 0.22s;
-    }
-    .transfer-card:hover {
-      box-shadow: 0 10px 32px rgba(108,92,231,0.12), 0 0 0 1.5px var(--border);
-      transform: translateY(-3px);
-    }
-    .transfer-body {
-      display: flex;
-      align-items: center;
-      padding: 24px 20px 20px;
-      gap: 8px;
-    }
-    .transfer-person {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 7px;
-      flex: 1;
-      min-width: 0;
-    }
-    .transfer-avatar {
-      width: 60px; height: 60px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
-      font-weight: 800;
-      color: white;
-      letter-spacing: -0.5px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.16);
-      transition: transform 0.25s cubic-bezier(.34,1.56,.64,1);
-    }
-    .transfer-card:hover .transfer-avatar { transform: scale(1.08); }
-    .transfer-name { font-size: 14px; font-weight: 700; text-align: center; }
-    .transfer-role {
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 0.5px; text-transform: uppercase;
-      padding: 2px 10px; border-radius: 100px;
-    }
-    .transfer-role.paga { background: var(--red-light); color: var(--red); }
-    .transfer-role.recibe { background: var(--green-light); color: var(--green); }
-    .transfer-arrow {
-      flex: 0 0 52px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding-bottom: 16px;
-    }
-    .transfer-arrow svg { animation: arrowPulse 1.8s ease-in-out infinite; }
-    .transfer-amount-bar {
-      padding: 14px 20px;
-      border-top: 1.5px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: linear-gradient(135deg, rgba(108,92,231,0.03) 0%, rgba(108,92,231,0.07) 100%);
-    }
-    .transfer-amount-label {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.4px;
-      text-transform: uppercase; color: var(--muted);
-    }
-    .transfer-amount-value {
-      font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
-    }
-    .transfer-amount-alt { font-size: 12px; color: var(--muted); font-weight: 500; }
+      /* ── SETTLEMENT CARDS ── */
+      @keyframes arrowPulse {
+        0%,
+        100% {
+          transform: translateX(-3px);
+          opacity: 0.5;
+        }
+        50% {
+          transform: translateX(3px);
+          opacity: 1;
+        }
+      }
+      .transfer-card {
+        background: var(--surface);
+        border-radius: 18px;
+        margin-bottom: 14px;
+        overflow: hidden;
+        box-shadow:
+          0 2px 10px rgba(108, 92, 231, 0.07),
+          0 0 0 1.5px var(--border);
+        animation: fadeSlideUp 0.38s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+        transition:
+          box-shadow 0.22s,
+          transform 0.22s;
+      }
+      .transfer-card:hover {
+        box-shadow:
+          0 10px 32px rgba(108, 92, 231, 0.12),
+          0 0 0 1.5px var(--border);
+        transform: translateY(-3px);
+      }
+      .transfer-body {
+        display: flex;
+        align-items: center;
+        padding: 24px 20px 20px;
+        gap: 8px;
+      }
+      .transfer-person {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 7px;
+        flex: 1;
+        min-width: 0;
+      }
+      .transfer-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.5px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .transfer-card:hover .transfer-avatar {
+        transform: scale(1.08);
+      }
+      .transfer-name {
+        font-size: 14px;
+        font-weight: 700;
+        text-align: center;
+      }
+      .transfer-role {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        padding: 2px 10px;
+        border-radius: 100px;
+      }
+      .transfer-role.paga {
+        background: var(--red-light);
+        color: var(--red);
+      }
+      .transfer-role.recibe {
+        background: var(--green-light);
+        color: var(--green);
+      }
+      .transfer-arrow {
+        flex: 0 0 52px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding-bottom: 16px;
+      }
+      .transfer-arrow svg {
+        animation: arrowPulse 1.8s ease-in-out infinite;
+      }
+      .transfer-amount-bar {
+        padding: 14px 20px;
+        border-top: 1.5px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(
+          135deg,
+          rgba(108, 92, 231, 0.03) 0%,
+          rgba(108, 92, 231, 0.07) 100%
+        );
+      }
+      .transfer-amount-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .transfer-amount-value {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+      .transfer-amount-alt {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 500;
+      }
 
-    /* Balance table */
-    .balance-table { width: 100%; border-collapse: collapse; }
-    .balance-table th {
-      text-align: left; padding: 10px 16px;
-      font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
-      color: var(--muted); font-weight: 700;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface2);
-    }
-    .balance-table th:first-child { border-radius: var(--radius-sm) 0 0 0; }
-    .balance-table th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
-    .balance-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
-    .balance-table tr:last-child td { border-bottom: none; }
-    .balance-table .avatar-cell { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-    .mini-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: white; flex-shrink: 0; }
+      /* Balance table */
+      .balance-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .balance-table th {
+        text-align: left;
+        padding: 10px 16px;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--muted);
+        font-weight: 700;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+      }
+      .balance-table th:first-child {
+        border-radius: var(--radius-sm) 0 0 0;
+      }
+      .balance-table th:last-child {
+        border-radius: 0 var(--radius-sm) 0 0;
+      }
+      .balance-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      .balance-table tr:last-child td {
+        border-bottom: none;
+      }
+      .balance-table .avatar-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+      }
+      .mini-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 800;
+        color: white;
+        flex-shrink: 0;
+      }
 
-    /* ── OPTIONAL BADGE ── */
-    .optional-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      background: var(--yellow);
-      color: white;
-      font-size: 10px;
-      font-weight: 700;
-      border-radius: 100px;
-      letter-spacing: 0.3px;
-      margin-left: 8px;
-      vertical-align: middle;
-    }
+      /* ── OPTIONAL BADGE ── */
+      .optional-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        background: var(--yellow);
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 100px;
+        letter-spacing: 0.3px;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
 
-    /* ── SKIP LINK ── */
-    .skip-row { text-align: center; margin-top: 12px; }
-    .skip-link { color: var(--muted); font-size: 13px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; transition: color 0.15s; }
-    .skip-link:hover { color: var(--accent); }
+      /* ── SKIP LINK ── */
+      .skip-row {
+        text-align: center;
+        margin-top: 12px;
+      }
+      .skip-link {
+        color: var(--muted);
+        font-size: 13px;
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        transition: color 0.15s;
+      }
+      .skip-link:hover {
+        color: var(--accent);
+      }
 
-    /* ── TOTAL BAR ── */
-    .total-bar {
-      background: var(--accent-light);
-      border: 1px solid var(--accent);
-      border-radius: var(--radius-sm);
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .total-bar .label { font-size: 12px; color: var(--accent); font-weight: 600; }
-    .total-bar .value { font-size: 18px; font-weight: 800; color: var(--accent); }
+      /* ── TOTAL BAR ── */
+      .total-bar {
+        background: var(--accent-light);
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-sm);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .total-bar .label {
+        font-size: 12px;
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .total-bar .value {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--accent);
+      }
 
-    /* ── ERROR ── */
-    .error-box {
-      background: var(--red-light);
-      border: 1px solid var(--red);
-      border-radius: var(--radius-sm);
-      padding: 14px 16px;
-      color: var(--red);
-      font-size: 13px;
-      margin-bottom: 16px;
-      font-weight: 500;
-    }
+      /* ── ERROR ── */
+      .error-box {
+        background: var(--red-light);
+        border: 1px solid var(--red);
+        border-radius: var(--radius-sm);
+        padding: 14px 16px;
+        color: var(--red);
+        font-size: 13px;
+        margin-bottom: 16px;
+        font-weight: 500;
+      }
 
-    /* ── EMPTY ── */
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .empty-state .icon { font-size: 36px; margin-bottom: 8px; }
+      /* ── EMPTY ── */
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .empty-state .icon {
+        font-size: 36px;
+        margin-bottom: 8px;
+      }
 
-    /* ── DIVIDER ── */
-    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
-    .divider-label {
-      text-align: center;
-      position: relative;
-      margin: 20px 0;
-    }
-    .divider-label::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 0; right: 0;
-      height: 1px;
-      background: var(--border);
-    }
-    .divider-label span {
-      position: relative;
-      background: var(--bg);
-      padding: 0 12px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
+      /* ── DIVIDER ── */
+      .divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 20px 0;
+      }
+      .divider-label {
+        text-align: center;
+        position: relative;
+        margin: 20px 0;
+      }
+      .divider-label::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--border);
+      }
+      .divider-label span {
+        position: relative;
+        background: var(--bg);
+        padding: 0 12px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
 
-    /* ── SPLITS CUSTOM ── */
-    .custom-splits-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .custom-split-field {
-      background: var(--surface2);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .custom-split-field label {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-    }
-    .custom-split-field input {
-      border: none;
-      background: transparent;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-      padding: 0;
-    }
-    .custom-split-field input:focus { box-shadow: none; }
+      /* ── SPLITS CUSTOM ── */
+      .custom-splits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .custom-split-field {
+        background: var(--surface2);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .custom-split-field label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .custom-split-field input {
+        border: none;
+        background: transparent;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        padding: 0;
+      }
+      .custom-split-field input:focus {
+        box-shadow: none;
+      }
 
-    /* ── CURRENCY MODAL ── */
-    .currency-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(30,27,58,0.4);
-      z-index: 200;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      animation: fadeIn 0.2s;
-    }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .currency-modal {
-      background: white;
-      border-radius: 20px 20px 0 0;
-      padding: 24px;
-      width: 100%;
-      max-width: 540px;
-      animation: slideUp 0.3s cubic-bezier(.25,.8,.25,1);
-    }
-    @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
-    }
-    .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+      /* ── CURRENCY MODAL ── */
+      .currency-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(30, 27, 58, 0.4);
+        z-index: 200;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        animation: fadeIn 0.2s;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .currency-modal {
+        background: white;
+        border-radius: 20px 20px 0 0;
+        padding: 24px;
+        width: 100%;
+        max-width: 540px;
+        animation: slideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+      .modal-handle {
+        width: 36px;
+        height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        margin: 0 auto 16px;
+      }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 480px) {
-      .container { padding: 20px 14px 80px; }
-      header { padding: 12px 16px; }
-      .stepper-wrap { padding: 0 12px; }
-    }
+      /* ── RESPONSIVE ── */
+      @media (max-width: 480px) {
+        .container {
+          padding: 20px 14px 80px;
+        }
+        header {
+          padding: 12px 16px;
+        }
+        .stepper-wrap {
+          padding: 0 12px;
+        }
+        .balance-table .avatar-cell {
+          justify-content: center;
+        }
+        .balance-table .avatar-name {
+          display: none;
+        }
+      }
 
-    .text-green { color: var(--green); }
-    .text-red { color: var(--red); }
-    .text-muted { color: var(--muted); }
-    .fw-700 { font-weight: 700; }
-    .mt-12 { margin-top: 12px; }
-    .mt-16 { margin-top: 16px; }
-    .flex { display: flex; }
-    .gap-8 { gap: 8px; }
-    .items-center { align-items: center; }
-    .justify-between { justify-content: space-between; }
+      .text-green {
+        color: var(--green);
+      }
+      .text-red {
+        color: var(--red);
+      }
+      .text-muted {
+        color: var(--muted);
+      }
+      .fw-700 {
+        font-weight: 700;
+      }
+      .mt-12 {
+        margin-top: 12px;
+      }
+      .mt-16 {
+        margin-top: 16px;
+      }
+      .flex {
+        display: flex;
+      }
+      .gap-8 {
+        gap: 8px;
+      }
+      .items-center {
+        align-items: center;
+      }
+      .justify-between {
+        justify-content: space-between;
+      }
 
-    /* ── HISTORIAL DRAWER ── */
-    .drawer-overlay {
-      position: fixed; inset: 0;
-      background: rgba(30,27,58,0.35);
-      z-index: 300;
-      display: flex; justify-content: flex-end;
-      animation: fadeIn 0.2s;
-    }
-    .drawer {
-      width: min(420px, 100vw);
-      height: 100%;
-      background: var(--surface);
-      box-shadow: -8px 0 40px rgba(108,92,231,0.12);
-      display: flex; flex-direction: column;
-      animation: slideFromRight 0.3s cubic-bezier(.25,.8,.25,1);
-    }
-    @keyframes slideFromRight {
-      from { transform: translateX(100%); }
-      to   { transform: translateX(0); }
-    }
-    .drawer-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 20px 16px;
-      border-bottom: 1.5px solid var(--border);
-      flex-shrink: 0;
-    }
-    .drawer-title { font-size: 16px; font-weight: 700; }
-    .drawer-body { flex: 1; overflow-y: auto; padding: 16px; }
-    .drawer-footer { padding: 16px; border-top: 1.5px solid var(--border); flex-shrink: 0; }
+      /* ── HISTORIAL DRAWER ── */
+      .drawer-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(30, 27, 58, 0.35);
+        z-index: 300;
+        display: flex;
+        justify-content: flex-end;
+        animation: fadeIn 0.2s;
+      }
+      .drawer {
+        width: min(420px, 100vw);
+        height: 100%;
+        background: var(--surface);
+        box-shadow: -8px 0 40px rgba(108, 92, 231, 0.12);
+        display: flex;
+        flex-direction: column;
+        animation: slideFromRight 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      @keyframes slideFromRight {
+        from {
+          transform: translateX(100%);
+        }
+        to {
+          transform: translateX(0);
+        }
+      }
+      .drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 20px 16px;
+        border-bottom: 1.5px solid var(--border);
+        flex-shrink: 0;
+      }
+      .drawer-title {
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .drawer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+      }
+      .drawer-footer {
+        padding: 16px;
+        border-top: 1.5px solid var(--border);
+        flex-shrink: 0;
+      }
 
-    /* Session cards */
-    .session-card {
-      border: 1.5px solid var(--border);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin-bottom: 10px;
-      background: var(--surface2);
-      transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
-      cursor: pointer;
-      animation: fadeSlideUp 0.25s both;
-    }
-    .session-card:hover {
-      box-shadow: 0 6px 20px rgba(108,92,231,0.1);
-      border-color: var(--accent-mid);
-      transform: translateY(-2px);
-    }
-    .session-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-    .session-card-name { font-weight: 700; font-size: 14px; }
-    .session-card-date { font-size: 11px; color: var(--muted); white-space: nowrap; }
-    .session-card-meta { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
-    .session-card-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 3px 8px; border-radius: 100px;
-      background: var(--accent-light); color: var(--accent);
-      font-size: 11px; font-weight: 700;
-    }
-    .session-avatars { display: flex; gap: -4px; }
-    .session-avatar-sm {
-      width: 22px; height: 22px;
-      border-radius: 50%; border: 2px solid var(--surface);
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 8px; font-weight: 800; color: white;
-      margin-left: -6px; flex-shrink: 0;
-    }
-    .session-avatar-sm:first-child { margin-left: 0; }
-    .session-card-actions { display: flex; gap: 6px; margin-top: 12px; }
+      /* Session cards */
+      .session-card {
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 10px;
+        background: var(--surface2);
+        transition:
+          box-shadow 0.2s,
+          transform 0.2s,
+          border-color 0.2s;
+        cursor: pointer;
+        animation: fadeSlideUp 0.25s both;
+      }
+      .session-card:hover {
+        box-shadow: 0 6px 20px rgba(108, 92, 231, 0.1);
+        border-color: var(--accent-mid);
+        transform: translateY(-2px);
+      }
+      .session-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .session-card-name {
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .session-card-date {
+        font-size: 11px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .session-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        color: var(--muted);
+        flex-wrap: wrap;
+      }
+      .session-card-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 100px;
+        background: var(--accent-light);
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .session-avatars {
+        display: flex;
+        gap: -4px;
+      }
+      .session-avatar-sm {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 2px solid var(--surface);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: 800;
+        color: white;
+        margin-left: -6px;
+        flex-shrink: 0;
+      }
+      .session-avatar-sm:first-child {
+        margin-left: 0;
+      }
+      .session-card-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 12px;
+      }
 
-    /* Shared session banner */
-    .shared-banner {
-      background: var(--accent);
-      color: white;
-      padding: 14px 20px;
-      display: flex; align-items: center; gap: 12px;
-      box-shadow: 0 4px 20px rgba(108,92,231,0.3);
-    }
-    .shared-banner-text { font-size: 14px; font-weight: 600; }
-    .shared-banner-sub { font-size: 12px; opacity: 0.8; margin-top: 1px; }
+      /* Shared session banner */
+      .shared-banner {
+        background: var(--accent);
+        color: white;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 20px rgba(108, 92, 231, 0.3);
+      }
+      .shared-banner-text {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .shared-banner-sub {
+        font-size: 12px;
+        opacity: 0.8;
+        margin-top: 1px;
+      }
 
-    /* Toast */
-    .toast {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-      background: var(--text); color: white;
-      padding: 12px 20px; border-radius: 100px;
-      font-size: 13px; font-weight: 600;
-      display: flex; align-items: center; gap: 8px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-      z-index: 500;
-      animation: toastIn 0.3s cubic-bezier(.34,1.56,.64,1);
-      white-space: nowrap;
-    }
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.9); }
-      to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-    }
-    .toast.out { animation: toastOut 0.25s ease forwards; }
-    @keyframes toastOut {
-      to { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.95); }
-    }
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--text);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 100px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        z-index: 500;
+        animation: toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        white-space: nowrap;
+      }
+      @keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(12px) scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0) scale(1);
+        }
+      }
+      .toast.out {
+        animation: toastOut 0.25s ease forwards;
+      }
+      @keyframes toastOut {
+        to {
+          opacity: 0;
+          transform: translateX(-50%) translateY(8px) scale(0.95);
+        }
+      }
 
-    /* Step 4 save bar */
-    .save-bar {
-      background: linear-gradient(135deg, var(--accent-light), #f0f9ff);
-      border: 1.5px solid var(--accent-mid);
-      border-radius: 14px;
-      padding: 16px 20px;
-      margin-bottom: 20px;
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; flex-wrap: wrap;
-    }
-    .save-bar-info .title { font-weight: 700; font-size: 14px; color: var(--accent); }
-    .save-bar-info .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .save-bar-actions { display: flex; gap: 8px; flex-shrink: 0; }
+      /* Step 4 save bar */
+      .save-bar {
+        background: linear-gradient(135deg, var(--accent-light), #f0f9ff);
+        border: 1.5px solid var(--accent-mid);
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .save-bar-info .title {
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--accent);
+      }
+      .save-bar-info .sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .save-bar-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
 
-    /* Historial btn in header */
-    .btn-history {
-      margin-left: auto;
-      display: flex; align-items: center; gap: 6px;
-      padding: 6px 12px; border-radius: 8px;
-      border: 1.5px solid var(--border); background: var(--surface2);
-      font-size: 12px; font-weight: 600; color: var(--muted);
-      cursor: pointer; transition: all 0.2s; font-family: inherit;
-    }
-    .btn-history:hover { border-color: var(--accent-mid); color: var(--accent); background: var(--accent-light); }
-    .btn-history .count {
-      background: var(--accent); color: white;
-      width: 18px; height: 18px; border-radius: 50%;
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 800;
-    }
-  </style>
-</head>
-<body>
-
-<div id="shared-banner" style="display:none;"></div>
-
-<header>
-  <div class="logo">
-    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
-      <line x1="12" y1="1" x2="12" y2="23"/>
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-    </svg>
-  </div>
-  <h1>Divisor</h1>
-  <span class="trip-name" id="header-trip-name" style="display:none"></span>
-  <button class="btn-history" onclick="openHistory()" id="btn-history">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-    </svg>
-    Historial
-    <span class="count" id="history-count" style="display:none">0</span>
-  </button>
-</header>
-
-<div class="stepper-wrap">
-  <div class="stepper">
-    <div class="step active" data-step="1" onclick="goToStep(1)">
-      <div class="step-bubble">1</div>
-      <div class="step-label">Grupo</div>
+      /* Historial btn in header */
+      .btn-history {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1.5px solid var(--border);
+        background: var(--surface2);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+      .btn-history:hover {
+        border-color: var(--accent-mid);
+        color: var(--accent);
+        background: var(--accent-light);
+      }
+      .btn-history .count {
+        background: var(--accent);
+        color: white;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 800;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="shared-banner"
+      style="display:none;">
     </div>
-    <div class="step" data-step="2" onclick="goToStep(2)">
-      <div class="step-bubble">2</div>
-      <div class="step-label">Monedas</div>
-    </div>
-    <div class="step" data-step="3" onclick="goToStep(3)">
-      <div class="step-bubble">3</div>
-      <div class="step-label">Gastos</div>
-    </div>
-    <div class="step" data-step="4" onclick="goToStep(4)">
-      <div class="step-bubble">4</div>
-      <div class="step-label">Liquidar</div>
-    </div>
-  </div>
-</div>
 
-<div class="container">
-
-  <!-- ═══════════ STEP 1: GRUPO ═══════════ -->
-  <div id="step-1" class="panel active">
-    <div class="card">
-      <div class="card-title">¿Cómo se llama el grupo?</div>
-      <div class="card-sub">Un nombre para identificar este viaje o evento</div>
-      <div class="field">
-        <input type="text" id="trip-name" placeholder="Ej: Viaje a Chile, Asado del 15..." />
+    <header>
+      <div class="logo">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="white"
+          stroke-width="2.5"
+          stroke-linecap="round">
+          <line
+            x1="12"
+            y1="1"
+            x2="12"
+            y2="23"
+          ></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">¿Quiénes participan?</div>
-      <div class="card-sub">Agregá a todos los participantes del grupo</div>
-      <div class="participants-input-row">
-        <input type="text" id="new-participant" placeholder="Nombre del participante" style="flex:1;" />
-        <button class="btn btn-primary" onclick="addParticipant()">+</button>
-      </div>
-      <div class="participants-chips" id="chips-container">
-        <div class="empty-state" style="padding:12px 0; font-size:13px;">
-          Todavía no hay participantes
-        </div>
-      </div>
-    </div>
-
-    <div class="nav-actions">
-      <div class="spacer"></div>
-      <button class="btn btn-primary" onclick="goToStep(2)">
-        Siguiente →
+      <h1>Divisor</h1>
+      <span
+        class="trip-name"
+        id="header-trip-name"
+        style="display:none"
+      ></span>
+      <button
+        class="btn-history"
+        onclick="openHistory()"
+        id="btn-history">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round">
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+          ></circle><polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Historial
+        <span
+          class="count"
+          id="history-count"
+          style="display:none"
+          >0</span
+        >
       </button>
-    </div>
-  </div>
+    </header>
 
-  <!-- ═══════════ STEP 2: MONEDAS ═══════════ -->
-  <div id="step-2" class="panel">
-    <div class="card">
-      <div class="card-title">
-        Monedas
-        <span class="optional-badge">Opcional</span>
-      </div>
-      <div class="card-sub">
-        ¿En qué moneda van a cargar los gastos? Podés agregar varias si pagaron en distintas monedas durante el viaje.
-      </div>
-
-      <div class="field" style="margin-bottom:20px;">
-        <label>Moneda principal</label>
-        <select id="base-currency-select">
-          <option value="ARS">$ Peso Argentino (ARS)</option>
-          <option value="USD">$ Dólar (USD)</option>
-          <option value="CLP">$ Peso Chileno (CLP)</option>
-          <option value="EUR">€ Euro (EUR)</option>
-          <option value="BRL">R$ Real (BRL)</option>
-          <option value="UYU">$ Peso Uruguayo (UYU)</option>
-          <option value="MXN">$ Peso Mexicano (MXN)</option>
-        </select>
-      </div>
-
-      <div class="divider-label">
-        <span>Monedas adicionales</span>
-      </div>
-
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
-        Si pagaron en más de una moneda, agregá las equivalencias para poder calcular correctamente.
-      </p>
-
-      <div class="flex gap-8" style="margin-bottom:12px;">
-        <div class="field" style="flex:1;">
-          <label>Código</label>
-          <input type="text" id="new-currency-code" placeholder="USD" maxlength="5" style="text-transform:uppercase" />
+    <div class="stepper-wrap">
+      <div class="stepper">
+        <div
+          class="step active"
+          data-step="1"
+          onclick="goToStep(1)">
+          <div class="step-bubble">1</div>
+          <div class="step-label">Grupo</div>
         </div>
-        <div class="field" style="flex:2;">
-          <label>1 <span id="currency-rate-label">ARS</span> = ? <span id="new-curr-code-preview">USD</span></label>
-          <input type="number" id="new-currency-rate" placeholder="0.00118" step="any" />
+        <div
+          class="step"
+          data-step="2"
+          onclick="goToStep(2)">
+          <div class="step-bubble">2</div>
+          <div class="step-label">Monedas</div>
         </div>
-        <div class="field" style="justify-content:flex-end;">
-          <label>&nbsp;</label>
-          <button class="btn btn-ghost" onclick="addExtraCurrency()" style="height:42px;">Agregar</button>
+        <div
+          class="step"
+          data-step="3"
+          onclick="goToStep(3)">
+          <div class="step-bubble">3</div>
+          <div class="step-label">Gastos</div>
+        </div>
+        <div
+          class="step"
+          data-step="4"
+          onclick="goToStep(4)">
+          <div class="step-bubble">4</div>
+          <div class="step-label">Liquidar</div>
         </div>
       </div>
-
-      <div id="extra-currencies-list"></div>
     </div>
 
-    <div class="nav-actions">
-      <button class="btn btn-ghost" onclick="goToStep(1)">← Atrás</button>
-      <div class="spacer"></div>
-      <button class="btn btn-primary" onclick="goToStep(3)">Siguiente →</button>
-    </div>
-  </div>
+    <div class="container">
+      <!-- ═══════════ STEP 1: GRUPO ═══════════ -->
+      <div
+        id="step-1"
+        class="panel active">
+        <div class="card">
+          <div class="card-title">¿Cómo se llama el grupo?</div>
+          <div class="card-sub">
+            Un nombre para identificar este viaje o evento
+          </div>
+          <div class="field">
+            <input
+              type="text"
+              id="trip-name"
+              placeholder="Ej: Viaje a Chile, Asado del 15..."
+            />
+          </div>
+        </div>
 
-  <!-- ═══════════ STEP 3: GASTOS ═══════════ -->
-  <div id="step-3" class="panel">
+        <div class="card">
+          <div class="card-title">¿Quiénes participan?</div>
+          <div class="card-sub">Agregá a todos los participantes del grupo</div>
+          <div class="participants-input-row">
+            <input
+              type="text"
+              id="new-participant"
+              placeholder="Nombre del participante"
+              style="flex:1;"
+            />
+            <button
+              class="btn btn-primary"
+              onclick="addParticipant()"
+              >+</button
+            >
+          </div>
+          <div
+            class="participants-chips"
+            id="chips-container">
+            <div
+              class="empty-state"
+              style="padding:12px 0; font-size:13px;">
+              Todavía no hay participantes
+            </div>
+          </div>
+        </div>
 
-    <!-- Quick add form -->
-    <div class="card" id="expense-form-card">
-      <div class="card-title">Nuevo gasto</div>
-
-      <!-- Amount + currency -->
-      <div class="field" style="margin-bottom:14px;">
-        <label>Monto</label>
-        <div class="amount-input-wrap">
-          <span class="amount-prefix" id="amount-prefix-symbol">$</span>
-          <input type="number" id="exp-amount" placeholder="0" step="any" inputmode="decimal" />
-          <button class="amount-currency-btn" id="currency-toggle-btn" onclick="openCurrencyPicker()">
-            <span id="selected-currency-label">ARS</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        <div class="nav-actions">
+          <div class="spacer"></div>
+          <button
+            class="btn btn-primary"
+            onclick="goToStep(2)">
+            Siguiente →
           </button>
         </div>
       </div>
 
-      <!-- Description -->
-      <div class="field" style="margin-bottom:14px;">
-        <label>Descripción <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:10px;">(opcional)</span></label>
-        <input type="text" id="exp-desc" placeholder="Ej: Almuerzo, Nafta, Hotel..." />
-      </div>
+      <!-- ═══════════ STEP 2: MONEDAS ═══════════ -->
+      <div
+        id="step-2"
+        class="panel">
+        <div class="card">
+          <div class="card-title">
+            Monedas
+            <span class="optional-badge">Opcional</span>
+          </div>
+          <div class="card-sub">
+            ¿En qué moneda van a cargar los gastos? Podés agregar varias si
+            pagaron en distintas monedas durante el viaje.
+          </div>
 
-      <!-- Who paid -->
-      <div class="field" style="margin-bottom:14px;">
-        <label>¿Quién pagó?</label>
-        <div class="payer-grid" id="payer-grid"></div>
-      </div>
+          <div
+            class="field"
+            style="margin-bottom:20px;">
+            <label>Moneda principal</label>
+            <select id="base-currency-select">
+              <option value="ARS">$ Peso Argentino (ARS)</option>
+              <option value="USD">$ Dólar (USD)</option>
+              <option value="CLP">$ Peso Chileno (CLP)</option>
+              <option value="EUR">€ Euro (EUR)</option>
+              <option value="BRL">R$ Real (BRL)</option>
+              <option value="UYU">$ Peso Uruguayo (UYU)</option>
+              <option value="MXN">$ Peso Mexicano (MXN)</option>
+            </select>
+          </div>
 
-      <!-- Split -->
-      <div class="field" style="margin-bottom:16px;">
-        <label>División</label>
-        <div class="split-toggle">
-          <button class="split-option active" data-split="equal" onclick="setSplitType('equal')">Igual entre todos</button>
-          <button class="split-option" data-split="select" onclick="setSplitType('select')">Solo algunos</button>
-          <button class="split-option" data-split="custom" onclick="setSplitType('custom')">Montos exactos</button>
+          <div class="divider-label">
+            <span>Monedas adicionales</span>
+          </div>
+
+          <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
+            Si pagaron en más de una moneda, agregá las equivalencias para poder
+            calcular correctamente.
+          </p>
+
+          <div
+            class="flex gap-8"
+            style="margin-bottom:12px;">
+            <div
+              class="field"
+              style="flex:1;">
+              <label>Código</label>
+              <input
+                type="text"
+                id="new-currency-code"
+                placeholder="USD"
+                maxlength="5"
+                style="text-transform:uppercase"
+              />
+            </div>
+            <div
+              class="field"
+              style="flex:2;">
+              <label
+                >1 <span id="currency-rate-label">ARS</span> = ? <span
+                  id="new-curr-code-preview">USD</span
+                ></label
+              >
+              <input
+                type="number"
+                id="new-currency-rate"
+                placeholder="0.00118"
+                step="any"
+              />
+            </div>
+            <div
+              class="field"
+              style="justify-content:flex-end;">
+              <label>&nbsp;</label>
+              <button
+                class="btn btn-ghost"
+                onclick="addExtraCurrency()"
+                style="height:42px;"
+                >Agregar</button
+              >
+            </div>
+          </div>
+
+          <div id="extra-currencies-list"></div>
         </div>
-        <div id="split-extra" style="margin-top:10px;"></div>
+
+        <div class="nav-actions">
+          <button
+            class="btn btn-ghost"
+            onclick="goToStep(1)"
+            >← Atrás</button
+          >
+          <div class="spacer"></div>
+          <button
+            class="btn btn-primary"
+            onclick="goToStep(3)"
+            >Siguiente →</button
+          >
+        </div>
       </div>
 
-      <button class="btn btn-primary btn-full" onclick="addExpense()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Agregar gasto
-      </button>
-    </div>
+      <!-- ═══════════ STEP 3: GASTOS ═══════════ -->
+      <div
+        id="step-3"
+        class="panel">
+        <!-- Quick add form -->
+        <div
+          class="card"
+          id="expense-form-card">
+          <div class="card-title">Nuevo gasto</div>
 
-    <!-- List -->
-    <div id="expenses-list-wrap">
-      <div id="total-bar" style="display:none;" class="total-bar">
-        <span class="label">Total cargado</span>
-        <span class="value" id="total-value">$0</span>
+          <!-- Amount + currency -->
+          <div
+            class="field"
+            style="margin-bottom:14px;">
+            <label>Monto</label>
+            <div class="amount-input-wrap">
+              <span
+                class="amount-prefix"
+                id="amount-prefix-symbol"
+                >$</span
+              >
+              <input
+                type="number"
+                id="exp-amount"
+                placeholder="0"
+                step="any"
+                inputmode="decimal"
+              />
+              <button
+                class="amount-currency-btn"
+                id="currency-toggle-btn"
+                onclick="openCurrencyPicker()">
+                <span id="selected-currency-label">ARS</span>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  ><path d="M6 9l6 6 6-6"></path></svg
+                >
+              </button>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div
+            class="field"
+            style="margin-bottom:14px;">
+            <label
+              >Descripción <span
+                style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:10px;"
+                >(opcional)</span
+              ></label
+            >
+            <input
+              type="text"
+              id="exp-desc"
+              placeholder="Ej: Almuerzo, Nafta, Hotel..."
+            />
+          </div>
+
+          <!-- Who paid -->
+          <div
+            class="field"
+            style="margin-bottom:14px;">
+            <label>¿Quién pagó?</label>
+            <div
+              class="payer-grid"
+              id="payer-grid">
+            </div>
+          </div>
+
+          <!-- Split -->
+          <div
+            class="field"
+            style="margin-bottom:16px;">
+            <label>División</label>
+            <div class="split-toggle">
+              <button
+                class="split-option active"
+                data-split="equal"
+                onclick="setSplitType('equal')"
+                >Igual entre todos</button
+              >
+              <button
+                class="split-option"
+                data-split="select"
+                onclick="setSplitType('select')"
+                >Solo algunos</button
+              >
+              <button
+                class="split-option"
+                data-split="custom"
+                onclick="setSplitType('custom')"
+                >Montos exactos</button
+              >
+            </div>
+            <div
+              id="split-extra"
+              style="margin-top:10px;">
+            </div>
+          </div>
+
+          <button
+            class="btn btn-primary btn-full"
+            onclick="addExpense()">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              ><line
+                x1="12"
+                y1="5"
+                x2="12"
+                y2="19"
+              ></line><line
+                x1="5"
+                y1="12"
+                x2="19"
+                y2="12"
+              ></line></svg
+            >
+            Agregar gasto
+          </button>
+        </div>
+
+        <!-- List -->
+        <div id="expenses-list-wrap">
+          <div
+            id="total-bar"
+            style="display:none;"
+            class="total-bar">
+            <span class="label">Total cargado</span>
+            <span
+              class="value"
+              id="total-value"
+              >$0</span
+            >
+          </div>
+          <div id="expenses-list"></div>
+        </div>
+
+        <div class="nav-actions">
+          <button
+            class="btn btn-ghost"
+            onclick="goToStep(2)"
+            >← Atrás</button
+          >
+          <div class="spacer"></div>
+          <button
+            class="btn btn-success"
+            onclick="goToStep(4)">
+            Calcular →
+          </button>
+        </div>
       </div>
-      <div id="expenses-list"></div>
-    </div>
 
-    <div class="nav-actions">
-      <button class="btn btn-ghost" onclick="goToStep(2)">← Atrás</button>
-      <div class="spacer"></div>
-      <button class="btn btn-success" onclick="goToStep(4)">
-        Calcular →
-      </button>
-    </div>
-  </div>
+      <!-- ═══════════ STEP 4: LIQUIDACIÓN ═══════════ -->
+      <div
+        id="step-4"
+        class="panel">
+        <div
+          id="error-box"
+          class="error-box"
+          style="display:none;">
+        </div>
 
-  <!-- ═══════════ STEP 4: LIQUIDACIÓN ═══════════ -->
-  <div id="step-4" class="panel">
-
-    <div id="error-box" class="error-box" style="display:none;"></div>
-
-    <!-- Save & Share bar -->
-    <div class="save-bar" id="save-bar">
-      <div class="save-bar-info">
-        <div class="title">🔗 Guardar y compartir</div>
-        <div class="sub">Se guarda en historial local y genera un link para compartir</div>
-      </div>
-      <div class="save-bar-actions">
-        <button class="btn btn-primary btn-sm" id="btn-compartir" onclick="saveAndShare()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-          </svg>
-          Compartir
-        </button>
-      </div>
-    </div>
-
-    <div id="liquidacion-result">
-      <!-- Balance summary -->
-      <div class="card" style="padding:0; overflow:hidden; margin-bottom:16px;">
-        <table class="balance-table">
-          <thead>
-            <tr>
-              <th>Persona</th>
-              <th>Pagó</th>
-              <th>Le corresponde</th>
-              <th>Balance</th>
-            </tr>
-          </thead>
-          <tbody id="balance-tbody"></tbody>
-        </table>
-      </div>
-
-      <!-- Who pays whom -->
-      <div style="font-size:11px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:var(--muted); margin-bottom:14px; margin-top:4px;">
-        💸 Transferencias
-      </div>
-      <div id="settlements-list"></div>
-
-      <!-- Alt currency -->
-      <div id="alt-currency-section" style="display:none; margin-top:20px;">
-        <div class="divider-label"><span>Equivalencias</span></div>
-        <div class="flex gap-8" style="margin-bottom:12px;">
-          <div class="field" style="flex:1;">
-            <label>Ver también en</label>
-            <select id="alt-currency-select" onchange="renderAltAmounts()"></select>
+        <!-- Save & Share bar -->
+        <div
+          class="save-bar"
+          id="save-bar">
+          <div class="save-bar-info">
+            <div class="title">🔗 Guardar y compartir</div>
+            <div class="sub">
+              Se guarda en historial local y genera un link para compartir
+            </div>
+          </div>
+          <div class="save-bar-actions">
+            <button
+              class="btn btn-primary btn-sm"
+              id="btn-compartir"
+              onclick="saveAndShare()">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round">
+                <path
+                  d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+                ></path>
+                <path
+                  d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+                ></path>
+              </svg>
+              Compartir
+            </button>
           </div>
         </div>
-        <div id="alt-amounts-list"></div>
+
+        <div id="liquidacion-result">
+          <!-- Balance summary -->
+          <div
+            class="card"
+            style="padding:0; overflow:hidden; margin-bottom:16px;">
+            <table class="balance-table">
+              <thead>
+                <tr>
+                  <th>Persona</th>
+                  <th>Pagó</th>
+                  <th>Le corresponde</th>
+                  <th>Balance</th>
+                </tr>
+              </thead>
+              <tbody id="balance-tbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Who pays whom -->
+          <div
+            style="font-size:11px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:var(--muted); margin-bottom:14px; margin-top:4px;">
+            💸 Transferencias
+          </div>
+          <div id="settlements-list"></div>
+
+          <!-- Alt currency -->
+          <div
+            id="alt-currency-section"
+            style="display:none; margin-top:20px;">
+            <div class="divider-label"><span>Equivalencias</span></div>
+            <div
+              class="flex gap-8"
+              style="margin-bottom:12px;">
+              <div
+                class="field"
+                style="flex:1;">
+                <label>Ver también en</label>
+                <select
+                  id="alt-currency-select"
+                  onchange="renderAltAmounts()"
+                ></select>
+              </div>
+            </div>
+            <div id="alt-amounts-list"></div>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <button
+            class="btn btn-ghost"
+            onclick="goToStep(3)"
+            >← Editar gastos</button
+          >
+        </div>
       </div>
     </div>
 
-    <div class="nav-actions">
-      <button class="btn btn-ghost" onclick="goToStep(3)">← Editar gastos</button>
-    </div>
-  </div>
-
-</div>
-
-<!-- History drawer -->
-<div id="history-overlay" class="drawer-overlay" style="display:none;" onclick="closeHistoryIfOverlay(event)">
-  <div class="drawer">
-    <div class="drawer-header">
-      <div>
-        <div class="drawer-title">📋 Historial</div>
-        <div style="font-size:12px; color:var(--muted); margin-top:2px;">Últimas 20 sesiones guardadas</div>
+    <!-- History drawer -->
+    <div
+      id="history-overlay"
+      class="drawer-overlay"
+      style="display:none;"
+      onclick="closeHistoryIfOverlay(event)">
+      <div class="drawer">
+        <div class="drawer-header">
+          <div>
+            <div class="drawer-title">📋 Historial</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:2px;">
+              Últimas 10 sesiones guardadas
+            </div>
+          </div>
+          <button
+            class="btn-card"
+            onclick="closeHistory()"
+            style="width:36px; height:36px; border-radius:10px;">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round">
+              <line
+                x1="18"
+                y1="6"
+                x2="6"
+                y2="18"
+              ></line><line
+                x1="6"
+                y1="6"
+                x2="18"
+                y2="18"
+              ></line>
+            </svg>
+          </button>
+        </div>
+        <div
+          class="drawer-body"
+          id="history-list">
+          <div class="empty-state">
+            <div class="icon">📂</div>Sin sesiones guardadas
+          </div>
+        </div>
+        <div class="drawer-footer">
+          <button
+            class="btn btn-ghost btn-full"
+            onclick="closeHistory()"
+            >Cerrar</button
+          >
+        </div>
       </div>
-      <button class="btn-card" onclick="closeHistory()" style="width:36px; height:36px; border-radius:10px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
     </div>
-    <div class="drawer-body" id="history-list">
-      <div class="empty-state"><div class="icon">📂</div>Sin sesiones guardadas</div>
+
+    <!-- Currency picker modal -->
+    <div
+      id="currency-modal"
+      class="currency-modal-overlay"
+      style="display:none;"
+      onclick="closeCurrencyPickerIfOverlay(event)">
+      <div class="currency-modal">
+        <div class="modal-handle"></div>
+        <div style="font-size:15px; font-weight:700; margin-bottom:14px;">
+          Seleccionar moneda
+        </div>
+        <div id="currency-modal-options"></div>
+        <button
+          class="btn btn-ghost btn-full"
+          style="margin-top:12px;"
+          onclick="closeCurrencyPicker()"
+          >Cancelar</button
+        >
+      </div>
     </div>
-    <div class="drawer-footer">
-      <button class="btn btn-ghost btn-full" onclick="closeHistory()">Cerrar</button>
-    </div>
-  </div>
-</div>
 
-<!-- Currency picker modal -->
-<div id="currency-modal" class="currency-modal-overlay" style="display:none;" onclick="closeCurrencyPickerIfOverlay(event)">
-  <div class="currency-modal">
-    <div class="modal-handle"></div>
-    <div style="font-size:15px; font-weight:700; margin-bottom:14px;">Seleccionar moneda</div>
-    <div id="currency-modal-options"></div>
-    <button class="btn btn-ghost btn-full" style="margin-top:12px;" onclick="closeCurrencyPicker()">Cancelar</button>
-  </div>
-</div>
+    <script is:inline>
+      // ─── COLORS ───────────────────────────────────────────────────────────────────
+      const COLORS = [
+        '#6c5ce7',
+        '#00b894',
+        '#e17055',
+        '#0984e3',
+        '#fd79a8',
+        '#fdcb6e',
+        '#00cec9',
+        '#a29bfe',
+        '#d63031',
+        '#55efc4',
+      ];
+      function colorFor(name) {
+        let hash = 0;
+        for (const c of name) hash = (hash * 31 + c.charCodeAt(0)) & 0xffffffff;
+        return COLORS[Math.abs(hash) % COLORS.length];
+      }
+      function initials(name) {
+        return name
+          .split(' ')
+          .map(w => w[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2);
+      }
 
-<script is:inline>
-// ─── COLORS ───────────────────────────────────────────────────────────────────
-const COLORS = ['#6c5ce7','#00b894','#e17055','#0984e3','#fd79a8','#fdcb6e','#00cec9','#a29bfe','#d63031','#55efc4'];
-function colorFor(name) {
-  let hash = 0;
-  for (const c of name) hash = (hash * 31 + c.charCodeAt(0)) & 0xffffffff;
-  return COLORS[Math.abs(hash) % COLORS.length];
-}
-function initials(name) {
-  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-}
+      // ─── STATE ────────────────────────────────────────────────────────────────────
+      const KEY = 'divisor-v2';
+      function load() {
+        try {
+          const r = localStorage.getItem(KEY);
+          if (r) return JSON.parse(r);
+        } catch {}
+        return {
+          tripName: '',
+          participants: [],
+          baseCurrency: 'ARS',
+          extraCurrencies: [],
+          expenses: [],
+        };
+      }
+      function save() {
+        localStorage.setItem(KEY, JSON.stringify(state));
+      }
+      let state = load();
+      let currentStep = 1;
+      let selectedPayer = null;
+      let splitType = 'equal';
+      let selectedExpenseCurrency = state.baseCurrency;
+      let _liquidacion = [];
 
-// ─── STATE ────────────────────────────────────────────────────────────────────
-const KEY = 'divisor-v2';
-function load() {
-  try { const r = localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch {}
-  return { tripName:'', participants:[], baseCurrency:'ARS', extraCurrencies:[], expenses:[] };
-}
-function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
-let state = load();
-let currentStep = 1;
-let selectedPayer = null;
-let splitType = 'equal';
-let selectedExpenseCurrency = state.baseCurrency;
-let _liquidacion = [];
+      const CURRENCY_SYMBOLS = {
+        ARS: '$',
+        USD: 'US$',
+        EUR: '€',
+        CLP: '$',
+        BRL: 'R$',
+        UYU: '$',
+        MXN: '$',
+      };
+      const USER_KEY = 'divisor-user-v1';
 
-// ─── STEP NAVIGATION ──────────────────────────────────────────────────────────
-function goToStep(n) {
-  // Save group name on navigate
-  state.tripName = document.getElementById('trip-name').value.trim();
-  state.baseCurrency = document.getElementById('base-currency-select').value;
-  save();
+      function getOrCreateUserId() {
+        const existing = localStorage.getItem(USER_KEY);
+        if (existing) return existing;
+        const created = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+        localStorage.setItem(USER_KEY, created);
+        return created;
+      }
+      const CURRENT_USER_ID = getOrCreateUserId();
 
-  if (n === 4) { calcularLiquidacion(); }
+      function roundAmount(value) {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return 0;
+        return Math.round(num);
+      }
+      function formatAmount(value) {
+        return roundAmount(value).toLocaleString('es-AR');
+      }
+      function formatMoney(value, currencyCode) {
+        return `${CURRENCY_SYMBOLS[currencyCode] || '$'}${formatAmount(value)}`;
+      }
 
-  currentStep = n;
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('step-' + n).classList.add('active');
+      // ─── STEP NAVIGATION ──────────────────────────────────────────────────────────
+      function goToStep(n) {
+        // Save group name on navigate
+        state.tripName = document.getElementById('trip-name').value.trim();
+        state.baseCurrency = document.getElementById(
+          'base-currency-select',
+        ).value;
+        save();
 
-  document.querySelectorAll('.step').forEach(s => {
-    const sn = parseInt(s.dataset.step);
-    s.classList.remove('active', 'done');
-    if (sn === n) s.classList.add('active');
-    else if (sn < n) s.classList.add('done');
-  });
+        if (n === 4) {
+          calcularLiquidacion();
+        }
 
-  // Render context
-  if (n === 1) renderChips();
-  if (n === 2) renderCurrencyRateLabel();
-  if (n === 3) { renderPayerGrid(); renderExpensesList(); selectedExpenseCurrency = state.baseCurrency; updateCurrencyBtn(); }
-  if (n === 4) {
-    renderAltCurrencySection();
-    document.querySelector('.save-bar').style.display = _isSharedView ? 'none' : '';
-  }
+        currentStep = n;
+        document
+          .querySelectorAll('.panel')
+          .forEach(p => p.classList.remove('active'));
+        document.getElementById('step-' + n).classList.add('active');
 
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+        document.querySelectorAll('.step').forEach(s => {
+          const sn = parseInt(s.dataset.step);
+          s.classList.remove('active', 'done');
+          if (sn === n) s.classList.add('active');
+          else if (sn < n) s.classList.add('done');
+        });
 
-// ─── TRIP NAME ────────────────────────────────────────────────────────────────
-function renderHeaderName() {
-  const el = document.getElementById('header-trip-name');
-  if (state.tripName) { el.textContent = state.tripName; el.style.display = ''; }
-  else el.style.display = 'none';
-}
+        // Render context
+        if (n === 1) renderChips();
+        if (n === 2) renderCurrencyRateLabel();
+        if (n === 3) {
+          renderPayerGrid();
+          renderExpensesList();
+          selectedExpenseCurrency = state.baseCurrency;
+          updateCurrencyBtn();
+        }
+        if (n === 4) {
+          renderAltCurrencySection();
+          document.querySelector('.save-bar').style.display = _isSharedView
+            ? 'none'
+            : '';
+        }
 
-// ─── PARTICIPANTS ──────────────────────────────────────────────────────────────
-function addParticipant() {
-  const inp = document.getElementById('new-participant');
-  const name = inp.value.trim();
-  if (!name || state.participants.includes(name)) { inp.value = ''; return; }
-  state.participants.push(name);
-  save();
-  inp.value = '';
-  inp.focus();
-  renderChips();
-}
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
 
-document.getElementById('new-participant').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addParticipant();
-});
+      // ─── TRIP NAME ────────────────────────────────────────────────────────────────
+      function renderHeaderName() {
+        const el = document.getElementById('header-trip-name');
+        if (state.tripName) {
+          el.textContent = state.tripName;
+          el.style.display = '';
+        } else el.style.display = 'none';
+      }
 
-function removeParticipant(name) {
-  state.participants = state.participants.filter(p => p !== name);
-  save();
-  renderChips();
-}
+      // ─── PARTICIPANTS ──────────────────────────────────────────────────────────────
+      function addParticipant() {
+        const inp = document.getElementById('new-participant');
+        const name = inp.value.trim();
+        if (!name || state.participants.includes(name)) {
+          inp.value = '';
+          return;
+        }
+        state.participants.push(name);
+        save();
+        inp.value = '';
+        inp.focus();
+        renderChips();
+      }
 
-function renderChips() {
-  const el = document.getElementById('chips-container');
-  if (!state.participants.length) {
-    el.innerHTML = '<div style="padding:12px 0; font-size:13px; color:var(--muted);">Todavía no hay participantes</div>';
-    return;
-  }
-  el.innerHTML = state.participants.map(p => {
-    const color = colorFor(p);
-    return `<span class="chip" style="background:${color}18; color:${color};">
+      document
+        .getElementById('new-participant')
+        .addEventListener('keydown', e => {
+          if (e.key === 'Enter') addParticipant();
+        });
+
+      function removeParticipant(name) {
+        state.participants = state.participants.filter(p => p !== name);
+        save();
+        renderChips();
+      }
+
+      function renderChips() {
+        const el = document.getElementById('chips-container');
+        if (!state.participants.length) {
+          el.innerHTML =
+            '<div style="padding:12px 0; font-size:13px; color:var(--muted);">Todavía no hay participantes</div>';
+          return;
+        }
+        el.innerHTML = state.participants
+          .map(p => {
+            const color = colorFor(p);
+            return `<span class="chip" style="background:${color}18; color:${color};">
       <span class="chip-avatar" style="background:${color};">${initials(p)}</span>
       <span class="chip-name">${p}</span>
       <button class="chip-remove" onclick="removeParticipant(${JSON.stringify(p)})" style="color:${color}80;">
@@ -1295,59 +2231,83 @@ function renderChips() {
         </svg>
       </button>
     </span>`;
-  }).join('');
-}
+          })
+          .join('');
+      }
 
-// ─── CURRENCIES ───────────────────────────────────────────────────────────────
-function allCurrencies() {
-  return [{ code: state.baseCurrency, rate: 1 }, ...state.extraCurrencies];
-}
+      // ─── CURRENCIES ───────────────────────────────────────────────────────────────
+      function allCurrencies() {
+        return [
+          { code: state.baseCurrency, rate: 1 },
+          ...state.extraCurrencies,
+        ];
+      }
 
-function renderCurrencyRateLabel() {
-  const base = document.getElementById('base-currency-select').value;
-  state.baseCurrency = base;
-  document.getElementById('currency-rate-label').textContent = base;
-  renderExtraCurrencies();
-}
+      function renderCurrencyRateLabel() {
+        const base = document.getElementById('base-currency-select').value;
+        state.baseCurrency = base;
+        document.getElementById('currency-rate-label').textContent = base;
+        renderExtraCurrencies();
+      }
 
-document.getElementById('base-currency-select').addEventListener('change', () => {
-  renderCurrencyRateLabel();
-});
+      document
+        .getElementById('base-currency-select')
+        .addEventListener('change', () => {
+          renderCurrencyRateLabel();
+        });
 
-document.getElementById('new-currency-code').addEventListener('input', e => {
-  document.getElementById('new-curr-code-preview').textContent = e.target.value.toUpperCase() || '?';
-});
+      document
+        .getElementById('new-currency-code')
+        .addEventListener('input', e => {
+          document.getElementById('new-curr-code-preview').textContent =
+            e.target.value.toUpperCase() || '?';
+        });
 
-function addExtraCurrency() {
-  const code = document.getElementById('new-currency-code').value.trim().toUpperCase();
-  const rate = parseFloat(document.getElementById('new-currency-rate').value);
-  if (!code || isNaN(rate) || rate <= 0) return;
-  if (code === state.baseCurrency) return;
-  const existing = state.extraCurrencies.find(c => c.code === code);
-  if (existing) existing.rate = rate;
-  else state.extraCurrencies.push({ code, rate });
-  save();
-  document.getElementById('new-currency-code').value = '';
-  document.getElementById('new-currency-rate').value = '';
-  document.getElementById('new-curr-code-preview').textContent = 'USD';
-  renderExtraCurrencies();
-}
+      function addExtraCurrency() {
+        const code = document
+          .getElementById('new-currency-code')
+          .value.trim()
+          .toUpperCase();
+        const rate = parseFloat(
+          document.getElementById('new-currency-rate').value,
+        );
+        if (!code || isNaN(rate) || rate <= 0) return;
+        if (code === state.baseCurrency) return;
+        const existing = state.extraCurrencies.find(c => c.code === code);
+        if (existing) existing.rate = rate;
+        else state.extraCurrencies.push({ code, rate });
+        save();
+        document.getElementById('new-currency-code').value = '';
+        document.getElementById('new-currency-rate').value = '';
+        document.getElementById('new-curr-code-preview').textContent = 'USD';
+        renderExtraCurrencies();
+      }
 
-function removeExtraCurrency(code) {
-  state.extraCurrencies = state.extraCurrencies.filter(c => c.code !== code);
-  save();
-  renderExtraCurrencies();
-}
+      function removeExtraCurrency(code) {
+        state.extraCurrencies = state.extraCurrencies.filter(
+          c => c.code !== code,
+        );
+        save();
+        renderExtraCurrencies();
+      }
 
-function updateExtraRate(code, val) {
-  const c = state.extraCurrencies.find(c => c.code === code);
-  if (c) { c.rate = parseFloat(val) || c.rate; save(); }
-}
+      function updateExtraRate(code, val) {
+        const c = state.extraCurrencies.find(c => c.code === code);
+        if (c) {
+          c.rate = parseFloat(val) || c.rate;
+          save();
+        }
+      }
 
-function renderExtraCurrencies() {
-  const el = document.getElementById('extra-currencies-list');
-  if (!state.extraCurrencies.length) { el.innerHTML = ''; return; }
-  el.innerHTML = state.extraCurrencies.map(c => `
+      function renderExtraCurrencies() {
+        const el = document.getElementById('extra-currencies-list');
+        if (!state.extraCurrencies.length) {
+          el.innerHTML = '';
+          return;
+        }
+        el.innerHTML = state.extraCurrencies
+          .map(
+            c => `
     <div class="currency-card">
       <div class="currency-badge">${c.code}</div>
       <div class="currency-info">
@@ -1358,316 +2318,409 @@ function renderExtraCurrencies() {
       </div>
       <button class="btn-remove" onclick="removeExtraCurrency('${c.code}')">✕</button>
     </div>
-  `).join('');
-}
+  `,
+          )
+          .join('');
+      }
 
-// ─── CURRENCY PICKER ──────────────────────────────────────────────────────────
-function openCurrencyPicker() {
-  const modal = document.getElementById('currency-modal');
-  const opts = document.getElementById('currency-modal-options');
-  const currencies = allCurrencies();
-  opts.innerHTML = currencies.map(c => `
+      // ─── CURRENCY PICKER ──────────────────────────────────────────────────────────
+      function openCurrencyPicker() {
+        const modal = document.getElementById('currency-modal');
+        const opts = document.getElementById('currency-modal-options');
+        const currencies = allCurrencies();
+        opts.innerHTML = currencies
+          .map(
+            c => `
     <button class="btn ${c.code === selectedExpenseCurrency ? 'btn-primary' : 'btn-ghost'}"
       style="width:100%; margin-bottom:6px; justify-content:flex-start;"
       onclick="selectExpenseCurrency('${c.code}')">
       ${c.code} ${c.code === state.baseCurrency ? '· moneda principal' : ''}
     </button>
-  `).join('');
-  modal.style.display = 'flex';
-}
+  `,
+          )
+          .join('');
+        modal.style.display = 'flex';
+      }
 
-function closeCurrencyPicker() {
-  document.getElementById('currency-modal').style.display = 'none';
-}
-function closeCurrencyPickerIfOverlay(e) {
-  if (e.target === document.getElementById('currency-modal')) closeCurrencyPicker();
-}
-function selectExpenseCurrency(code) {
-  selectedExpenseCurrency = code;
-  updateCurrencyBtn();
-  closeCurrencyPicker();
-}
-function updateCurrencyBtn() {
-  document.getElementById('selected-currency-label').textContent = selectedExpenseCurrency;
-  // symbol
-  const symbols = { ARS:'$', USD:'US$', EUR:'€', CLP:'$', BRL:'R$', UYU:'$', MXN:'$' };
-  document.getElementById('amount-prefix-symbol').textContent = symbols[selectedExpenseCurrency] || '$';
-}
+      function closeCurrencyPicker() {
+        document.getElementById('currency-modal').style.display = 'none';
+      }
+      function closeCurrencyPickerIfOverlay(e) {
+        if (e.target === document.getElementById('currency-modal'))
+          closeCurrencyPicker();
+      }
+      function selectExpenseCurrency(code) {
+        selectedExpenseCurrency = code;
+        updateCurrencyBtn();
+        closeCurrencyPicker();
+      }
+      function updateCurrencyBtn() {
+        document.getElementById('selected-currency-label').textContent =
+          selectedExpenseCurrency;
+        // symbol
+        const symbols = {
+          ARS: '$',
+          USD: 'US$',
+          EUR: '€',
+          CLP: '$',
+          BRL: 'R$',
+          UYU: '$',
+          MXN: '$',
+        };
+        document.getElementById('amount-prefix-symbol').textContent =
+          symbols[selectedExpenseCurrency] || '$';
+      }
 
-// ─── PAYER GRID ───────────────────────────────────────────────────────────────
-function renderPayerGrid() {
-  const grid = document.getElementById('payer-grid');
-  if (!state.participants.length) {
-    grid.innerHTML = '<span style="color:var(--muted); font-size:13px;">Primero agregá participantes en el paso 1</span>';
-    return;
-  }
-  if (!selectedPayer || !state.participants.includes(selectedPayer)) {
-    selectedPayer = state.participants[0];
-  }
-  grid.innerHTML = state.participants.map(p => {
-    const color = colorFor(p);
-    const sel = selectedPayer === p;
-    return `<button class="payer-btn ${sel ? 'selected' : ''}" onclick="selectPayer('${p}')"
+      // ─── PAYER GRID ───────────────────────────────────────────────────────────────
+      function renderPayerGrid() {
+        const grid = document.getElementById('payer-grid');
+        if (!state.participants.length) {
+          grid.innerHTML =
+            '<span style="color:var(--muted); font-size:13px;">Primero agregá participantes en el paso 1</span>';
+          return;
+        }
+        if (!selectedPayer || !state.participants.includes(selectedPayer)) {
+          selectedPayer = state.participants[0];
+        }
+        grid.innerHTML = state.participants
+          .map(p => {
+            const color = colorFor(p);
+            const sel = selectedPayer === p;
+            return `<button class="payer-btn ${sel ? 'selected' : ''}" onclick="selectPayer('${p}')"
       data-name="${p}" data-color="${color}" id="payer-btn-${p}"
       style="${sel ? `border-color:${color};background:${color}18;color:${color};` : ''}">
       <div class="payer-avatar" style="background:${color}; opacity:${sel ? 1 : 0.55};">${initials(p)}</div>
       ${p}
     </button>`;
-  }).join('');
-}
+          })
+          .join('');
+      }
 
-function selectPayer(name) {
-  selectedPayer = name;
-  document.querySelectorAll('.payer-btn').forEach(btn => {
-    const pName = btn.dataset.name;
-    const pColor = btn.dataset.color;
-    const isSel = pName === name;
-    btn.classList.toggle('selected', isSel);
-    btn.style.borderColor = isSel ? pColor : '';
-    btn.style.background  = isSel ? pColor + '18' : '';
-    btn.style.color       = isSel ? pColor : '';
-    const av = btn.querySelector('.payer-avatar');
-    if (av) av.style.opacity = isSel ? '1' : '0.55';
-  });
-}
+      function selectPayer(name) {
+        selectedPayer = name;
+        document.querySelectorAll('.payer-btn').forEach(btn => {
+          const pName = btn.dataset.name;
+          const pColor = btn.dataset.color;
+          const isSel = pName === name;
+          btn.classList.toggle('selected', isSel);
+          btn.style.borderColor = isSel ? pColor : '';
+          btn.style.background = isSel ? pColor + '18' : '';
+          btn.style.color = isSel ? pColor : '';
+          const av = btn.querySelector('.payer-avatar');
+          if (av) av.style.opacity = isSel ? '1' : '0.55';
+        });
+      }
 
-// ─── SPLIT ────────────────────────────────────────────────────────────────────
-function setSplitType(type) {
-  splitType = type;
-  document.querySelectorAll('.split-option').forEach(b => {
-    b.classList.toggle('active', b.dataset.split === type);
-  });
-  renderSplitExtra();
-}
+      // ─── SPLIT ────────────────────────────────────────────────────────────────────
+      function setSplitType(type) {
+        splitType = type;
+        document.querySelectorAll('.split-option').forEach(b => {
+          b.classList.toggle('active', b.dataset.split === type);
+        });
+        renderSplitExtra();
+      }
 
-function renderSplitExtra() {
-  const el = document.getElementById('split-extra');
-  if (splitType === 'equal') { el.innerHTML = ''; return; }
+      function renderSplitExtra() {
+        const el = document.getElementById('split-extra');
+        if (splitType === 'equal') {
+          el.innerHTML = '';
+          return;
+        }
 
-  if (splitType === 'select') {
-    el.innerHTML = `<div style="display:flex; flex-wrap:wrap; gap:8px;">` +
-      state.participants.map(p => {
-        const color = colorFor(p);
-        return `<label style="display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 12px; border-radius:100px; border:1.5px solid ${color}40; background:${color}10; font-size:13px; font-weight:600; color:${color};">
+        if (splitType === 'select') {
+          el.innerHTML =
+            `<div style="display:flex; flex-wrap:wrap; gap:8px;">` +
+            state.participants
+              .map(p => {
+                const color = colorFor(p);
+                return `<label style="display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 12px; border-radius:100px; border:1.5px solid ${color}40; background:${color}10; font-size:13px; font-weight:600; color:${color};">
           <input type="checkbox" id="sc-${p}" checked style="width:auto; accent-color:${color};" />
           ${p}
         </label>`;
-      }).join('') + `</div>`;
-  }
+              })
+              .join('') +
+            `</div>`;
+        }
 
-  if (splitType === 'custom') {
-    el.innerHTML = `<div class="custom-splits-grid">` +
-      state.participants.map(p => {
-        const color = colorFor(p);
-        return `<div class="custom-split-field" style="border-color:${color}30;">
+        if (splitType === 'custom') {
+          el.innerHTML =
+            `<div class="custom-splits-grid">` +
+            state.participants
+              .map(p => {
+                const color = colorFor(p);
+                return `<div class="custom-split-field" style="border-color:${color}30;">
           <label style="color:${color};">${p}</label>
           <input type="number" id="ca-${p}" placeholder="0" step="any" inputmode="decimal" />
         </div>`;
-      }).join('') + `</div>`;
-  }
-}
+              })
+              .join('') +
+            `</div>`;
+        }
+      }
 
-// ─── ADD EXPENSE ──────────────────────────────────────────────────────────────
-const EXPENSE_EMOJIS = ['🍔','🛒','🏨','⛽','🎫','🍕','🍺','🚗','✈️','🏖️','🎉','☕','🍷','🛍️','💊'];
-function randomEmoji() { return EXPENSE_EMOJIS[Math.floor(Math.random() * EXPENSE_EMOJIS.length)]; }
+      // ─── ADD EXPENSE ──────────────────────────────────────────────────────────────
+      const EXPENSE_EMOJIS = [
+        '🍔',
+        '🛒',
+        '🏨',
+        '⛽',
+        '🎫',
+        '🍕',
+        '🍺',
+        '🚗',
+        '✈️',
+        '🏖️',
+        '🎉',
+        '☕',
+        '🍷',
+        '🛍️',
+        '💊',
+      ];
+      function randomEmoji() {
+        return EXPENSE_EMOJIS[
+          Math.floor(Math.random() * EXPENSE_EMOJIS.length)
+        ];
+      }
 
-function addExpense() {
-  const amount = parseFloat(document.getElementById('exp-amount').value);
-  const desc = document.getElementById('exp-desc').value.trim() || '—';
-  const amountEl = document.getElementById('exp-amount');
-  if (!amount || isNaN(amount) || amount <= 0) {
-    amountEl.focus();
-    amountEl.style.borderColor = 'var(--red)';
-    setTimeout(() => amountEl.style.borderColor = '', 1200);
-    return;
-  }
-  if (!selectedPayer) return;
+      function addExpense() {
+        const amount = parseFloat(document.getElementById('exp-amount').value);
+        const desc = document.getElementById('exp-desc').value.trim() || '—';
+        const amountEl = document.getElementById('exp-amount');
+        if (!amount || isNaN(amount) || amount <= 0) {
+          amountEl.focus();
+          amountEl.style.borderColor = 'var(--red)';
+          setTimeout(() => (amountEl.style.borderColor = ''), 1200);
+          return;
+        }
+        if (!selectedPayer) return;
 
-  const currObj = allCurrencies().find(c => c.code === selectedExpenseCurrency);
-  // rate: how many BASE = 1 of selectedExpenseCurrency
-  // We need: amountInBase = amount / rate (if rate = 1 BASE = rate EXTRA)
-  // Actually state: 1 BASE = rate EXTRA → 1 EXTRA = 1/rate BASE
-  const amountInBase = currObj && currObj.code !== state.baseCurrency
-    ? amount / currObj.rate
-    : amount;
+        const currObj = allCurrencies().find(
+          c => c.code === selectedExpenseCurrency,
+        );
+        // rate: how many BASE = 1 of selectedExpenseCurrency
+        // We need: amountInBase = amount / rate (if rate = 1 BASE = rate EXTRA)
+        // Actually state: 1 BASE = rate EXTRA → 1 EXTRA = 1/rate BASE
+        const amountInBase =
+          currObj && currObj.code !== state.baseCurrency
+            ? amount / currObj.rate
+            : amount;
 
-  let splits = {};
-  if (splitType === 'equal') {
-    const each = amount / state.participants.length;
-    state.participants.forEach(p => splits[p] = each);
-  } else if (splitType === 'select') {
-    const selected = state.participants.filter(p => document.getElementById('sc-' + p)?.checked);
-    if (!selected.length) return;
-    const each = amount / selected.length;
-    selected.forEach(p => splits[p] = each);
-    // others get 0
-    state.participants.filter(p => !selected.includes(p)).forEach(p => splits[p] = 0);
-  } else {
-    let total = 0;
-    state.participants.forEach(p => {
-      const v = parseFloat(document.getElementById('ca-' + p)?.value || 0);
-      splits[p] = v; total += v;
-    });
-    if (Math.abs(total - amount) > 0.02) {
-      alert(`Los montos no suman el total.\nIngresado: ${total.toFixed(2)}, Esperado: ${amount.toFixed(2)}`);
-      return;
-    }
-  }
+        let splits = {};
+        if (splitType === 'equal') {
+          const each = amount / state.participants.length;
+          state.participants.forEach(p => (splits[p] = each));
+        } else if (splitType === 'select') {
+          const selected = state.participants.filter(
+            p => document.getElementById('sc-' + p)?.checked,
+          );
+          if (!selected.length) return;
+          const each = amount / selected.length;
+          selected.forEach(p => (splits[p] = each));
+          // others get 0
+          state.participants
+            .filter(p => !selected.includes(p))
+            .forEach(p => (splits[p] = 0));
+        } else {
+          let total = 0;
+          state.participants.forEach(p => {
+            const v = parseFloat(
+              document.getElementById('ca-' + p)?.value || 0,
+            );
+            splits[p] = v;
+            total += v;
+          });
+          if (Math.abs(total - amount) > 0.02) {
+            alert(
+              `Los montos no suman el total.\nIngresado: ${formatAmount(total)}, Esperado: ${formatAmount(amount)}`,
+            );
+            return;
+          }
+        }
 
-  state.expenses.push({
-    id: Date.now(),
-    description: desc,
-    paidBy: selectedPayer,
-    currency: selectedExpenseCurrency,
-    amount,
-    amountInBase,
-    splits,
-    emoji: randomEmoji()
-  });
-  save();
+        state.expenses.push({
+          id: Date.now(),
+          description: desc,
+          paidBy: selectedPayer,
+          currency: selectedExpenseCurrency,
+          amount,
+          amountInBase,
+          splits,
+          emoji: randomEmoji(),
+        });
+        save();
 
-  document.getElementById('exp-amount').value = '';
-  document.getElementById('exp-desc').value = '';
-  setSplitType('equal');
-  document.getElementById('exp-amount').focus();
-  renderExpensesList();
-}
+        document.getElementById('exp-amount').value = '';
+        document.getElementById('exp-desc').value = '';
+        setSplitType('equal');
+        document.getElementById('exp-amount').focus();
+        renderExpensesList();
+      }
 
-document.getElementById('exp-amount').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('exp-desc').focus();
-});
-document.getElementById('exp-desc').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addExpense();
-});
+      document.getElementById('exp-amount').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('exp-desc').focus();
+      });
+      document.getElementById('exp-desc').addEventListener('keydown', e => {
+        if (e.key === 'Enter') addExpense();
+      });
 
-function removeExpense(id) {
-  state.expenses = state.expenses.filter(e => e.id !== id);
-  if (editingId === id) editingId = null;
-  save();
-  renderExpensesList();
-}
+      function removeExpense(id) {
+        state.expenses = state.expenses.filter(e => e.id !== id);
+        if (editingId === id) editingId = null;
+        save();
+        renderExpensesList();
+      }
 
-// ─── EDIT EXPENSE ─────────────────────────────────────────────────────────────
-let editingId = null;
-let editPayerSel = {};   // { expId: 'Mario' }
-let editSplitSel = {};   // { expId: 'equal' | 'select' | 'custom' }
+      // ─── EDIT EXPENSE ─────────────────────────────────────────────────────────────
+      let editingId = null;
+      let editPayerSel = {}; // { expId: 'Mario' }
+      let editSplitSel = {}; // { expId: 'equal' | 'select' | 'custom' }
 
-function toggleEdit(id) {
-  if (editingId === id) { editingId = null; }
-  else {
-    const exp = state.expenses.find(e => e.id === id);
-    editingId = id;
-    editPayerSel[id] = exp.paidBy;
-    editSplitSel[id] = 'equal'; // reset to equal on open
-  }
-  renderExpensesList();
-}
+      function toggleEdit(id) {
+        if (editingId === id) {
+          editingId = null;
+        } else {
+          const exp = state.expenses.find(e => e.id === id);
+          editingId = id;
+          editPayerSel[id] = exp.paidBy;
+          editSplitSel[id] = 'equal'; // reset to equal on open
+        }
+        renderExpensesList();
+      }
 
-function setEditPayer(id, name) {
-  editPayerSel[id] = name;
-  // Update visual without full re-render
-  document.querySelectorAll(`[data-ep="${id}"]`).forEach(btn => {
-    const isMe = btn.dataset.name === name;
-    const color = btn.dataset.color;
-    btn.classList.toggle('sel', isMe);
-    btn.style.borderColor = isMe ? color : 'var(--border)';
-    btn.style.background = isMe ? color + '15' : 'var(--surface)';
-    btn.style.color = isMe ? color : 'var(--muted)';
-  });
-}
+      function setEditPayer(id, name) {
+        editPayerSel[id] = name;
+        // Update visual without full re-render
+        document.querySelectorAll(`[data-ep="${id}"]`).forEach(btn => {
+          const isMe = btn.dataset.name === name;
+          const color = btn.dataset.color;
+          btn.classList.toggle('sel', isMe);
+          btn.style.borderColor = isMe ? color : 'var(--border)';
+          btn.style.background = isMe ? color + '15' : 'var(--surface)';
+          btn.style.color = isMe ? color : 'var(--muted)';
+        });
+      }
 
-function setEditSplit(id, type) {
-  editSplitSel[id] = type;
-  document.querySelectorAll(`[data-esplit="${id}"]`).forEach(b => {
-    b.classList.toggle('active', b.dataset.val === type);
-  });
-  // Show/hide extra split options
-  const extra = document.getElementById(`edit-split-extra-${id}`);
-  if (!extra) return;
-  const exp = state.expenses.find(e => e.id === id);
-  if (type === 'equal') { extra.innerHTML = ''; return; }
-  if (type === 'select') {
-    extra.innerHTML = `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">` +
-      state.participants.map(p => {
-        const c = colorFor(p); const inSplit = (exp.splits[p] || 0) > 0;
-        return `<label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:5px 10px;border-radius:100px;border:1.5px solid ${c}40;background:${c}10;font-size:12px;font-weight:600;color:${c};">
+      function setEditSplit(id, type) {
+        editSplitSel[id] = type;
+        document.querySelectorAll(`[data-esplit="${id}"]`).forEach(b => {
+          b.classList.toggle('active', b.dataset.val === type);
+        });
+        // Show/hide extra split options
+        const extra = document.getElementById(`edit-split-extra-${id}`);
+        if (!extra) return;
+        const exp = state.expenses.find(e => e.id === id);
+        if (type === 'equal') {
+          extra.innerHTML = '';
+          return;
+        }
+        if (type === 'select') {
+          extra.innerHTML =
+            `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">` +
+            state.participants
+              .map(p => {
+                const c = colorFor(p);
+                const inSplit = (exp.splits[p] || 0) > 0;
+                return `<label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:5px 10px;border-radius:100px;border:1.5px solid ${c}40;background:${c}10;font-size:12px;font-weight:600;color:${c};">
           <input type="checkbox" id="es-${id}-${p}" ${inSplit ? 'checked' : ''} style="width:auto;accent-color:${c};"/>
           ${p}</label>`;
-      }).join('') + `</div>`;
-  }
-  if (type === 'custom') {
-    extra.innerHTML = `<div class="custom-splits-grid" style="margin-top:8px;">` +
-      state.participants.map(p => {
-        const c = colorFor(p); const val = (exp.splits[p] || 0).toFixed(2);
-        return `<div class="custom-split-field" style="border-color:${c}30;">
+              })
+              .join('') +
+            `</div>`;
+        }
+        if (type === 'custom') {
+          extra.innerHTML =
+            `<div class="custom-splits-grid" style="margin-top:8px;">` +
+            state.participants
+              .map(p => {
+                const c = colorFor(p);
+                const val = roundAmount(exp.splits[p] || 0);
+                return `<div class="custom-split-field" style="border-color:${c}30;">
           <label style="color:${c};">${p}</label>
           <input type="number" id="ec-${id}-${p}" value="${val}" step="any" inputmode="decimal"/>
         </div>`;
-      }).join('') + `</div>`;
-  }
-}
+              })
+              .join('') +
+            `</div>`;
+        }
+      }
 
-function saveExpenseEdit(id) {
-  const exp = state.expenses.find(e => e.id === id);
-  if (!exp) return;
-  exp.paidBy = editPayerSel[id] || exp.paidBy;
-  const st = editSplitSel[id] || 'equal';
-  if (st === 'equal') {
-    const each = exp.amount / state.participants.length;
-    state.participants.forEach(p => exp.splits[p] = each);
-  } else if (st === 'select') {
-    const sel = state.participants.filter(p => document.getElementById(`es-${id}-${p}`)?.checked);
-    if (sel.length) {
-      const each = exp.amount / sel.length;
-      state.participants.forEach(p => exp.splits[p] = sel.includes(p) ? each : 0);
-    }
-  } else {
-    state.participants.forEach(p => {
-      exp.splits[p] = parseFloat(document.getElementById(`ec-${id}-${p}`)?.value || 0);
-    });
-  }
-  save();
-  editingId = null;
-  renderExpensesList();
-}
+      function saveExpenseEdit(id) {
+        const exp = state.expenses.find(e => e.id === id);
+        if (!exp) return;
+        exp.paidBy = editPayerSel[id] || exp.paidBy;
+        const st = editSplitSel[id] || 'equal';
+        if (st === 'equal') {
+          const each = exp.amount / state.participants.length;
+          state.participants.forEach(p => (exp.splits[p] = each));
+        } else if (st === 'select') {
+          const sel = state.participants.filter(
+            p => document.getElementById(`es-${id}-${p}`)?.checked,
+          );
+          if (sel.length) {
+            const each = exp.amount / sel.length;
+            state.participants.forEach(
+              p => (exp.splits[p] = sel.includes(p) ? each : 0),
+            );
+          }
+        } else {
+          state.participants.forEach(p => {
+            exp.splits[p] = parseFloat(
+              document.getElementById(`ec-${id}-${p}`)?.value || 0,
+            );
+          });
+        }
+        save();
+        editingId = null;
+        renderExpensesList();
+      }
 
-function renderExpensesList() {
-  const listEl = document.getElementById('expenses-list');
-  const totalBar = document.getElementById('total-bar');
-  const totalVal = document.getElementById('total-value');
+      function renderExpensesList() {
+        const listEl = document.getElementById('expenses-list');
+        const totalBar = document.getElementById('total-bar');
+        const totalVal = document.getElementById('total-value');
 
-  if (!state.expenses.length) {
-    listEl.innerHTML = '<div class="empty-state"><div class="icon">🧾</div>Todavía no cargaste gastos</div>';
-    totalBar.style.display = 'none';
-    return;
-  }
+        if (!state.expenses.length) {
+          listEl.innerHTML =
+            '<div class="empty-state"><div class="icon">🧾</div>Todavía no cargaste gastos</div>';
+          totalBar.style.display = 'none';
+          return;
+        }
 
-  const sym = { ARS:'$', USD:'US$', EUR:'€', CLP:'$', BRL:'R$', UYU:'$', MXN:'$' }[state.baseCurrency] || '$';
-  const totalBase = state.expenses.reduce((s, e) => s + e.amountInBase, 0);
-  totalVal.textContent = `${sym}${totalBase.toFixed(2)} ${state.baseCurrency}`;
-  totalBar.style.display = 'flex';
+        const totalBase = state.expenses.reduce(
+          (s, e) => s + e.amountInBase,
+          0,
+        );
+        totalVal.textContent = `${formatMoney(totalBase, state.baseCurrency)} ${state.baseCurrency}`;
+        totalBar.style.display = 'flex';
 
-  listEl.innerHTML = state.expenses.map((e, idx) => {
-    const payerColor = colorFor(e.paidBy);
-    const participants = Object.entries(e.splits).filter(([,v]) => v > 0).map(([p]) => p);
-    const sameBase = e.currency === state.baseCurrency;
-    const isEditing = editingId === e.id;
-    const delay = `animation-delay:${idx * 40}ms`;
+        listEl.innerHTML = state.expenses
+          .map((e, idx) => {
+            const payerColor = colorFor(e.paidBy);
+            const participants = Object.entries(e.splits)
+              .filter(([, v]) => v > 0)
+              .map(([p]) => p);
+            const sameBase = e.currency === state.baseCurrency;
+            const isEditing = editingId === e.id;
+            const delay = `animation-delay:${idx * 40}ms`;
 
-    // Edit panel
-    const editPanel = isEditing ? `
+            // Edit panel
+            const editPanel = isEditing
+              ? `
       <div class="expense-edit-panel">
         <div class="edit-label">¿Quién pagó?</div>
         <div class="edit-payer-grid">
-          ${state.participants.map(p => {
-            const c = colorFor(p); const sel = (editPayerSel[e.id] || e.paidBy) === p;
-            return `<button class="edit-payer-btn ${sel ? 'sel' : ''}" data-ep="${e.id}" data-name="${p}" data-color="${c}"
+          ${state.participants
+            .map(p => {
+              const c = colorFor(p);
+              const sel = (editPayerSel[e.id] || e.paidBy) === p;
+              return `<button class="edit-payer-btn ${sel ? 'sel' : ''}" data-ep="${e.id}" data-name="${p}" data-color="${c}"
               onclick="setEditPayer(${e.id}, '${p}')"
-              style="border-color:${sel ? c : 'var(--border)'}; background:${sel ? c+'15' : 'var(--surface)'}; color:${sel ? c : 'var(--muted)'};">
+              style="border-color:${sel ? c : 'var(--border)'}; background:${sel ? c + '15' : 'var(--surface)'}; color:${sel ? c : 'var(--muted)'};">
               <div class="edit-payer-avatar" style="background:${c}; opacity:${sel ? 1 : 0.6}">${initials(p)}</div>
               ${p}
             </button>`;
-          }).join('')}
+            })
+            .join('')}
         </div>
         <div class="edit-label">Forma de dividir</div>
         <div class="split-toggle">
@@ -1680,9 +2733,10 @@ function renderExpensesList() {
           <button class="btn btn-primary btn-sm" onclick="saveExpenseEdit(${e.id})">Guardar</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleEdit(${e.id})">Cancelar</button>
         </div>
-      </div>` : '';
+      </div>`
+              : '';
 
-    return `<div class="expense-card ${isEditing ? 'editing' : ''}" style="${delay}">
+            return `<div class="expense-card ${isEditing ? 'editing' : ''}" style="${delay}">
       <div class="expense-card-main">
         <div class="expense-card-icon" style="background:${payerColor}12;">${e.emoji}</div>
         <div class="expense-card-body">
@@ -1696,8 +2750,8 @@ function renderExpensesList() {
         </div>
         <div class="expense-card-right">
           <div class="expense-card-amount">
-            <div class="main">${sym}${e.amountInBase.toFixed(2)}</div>
-            ${!sameBase ? `<div class="sub">${e.amount.toFixed(2)} ${e.currency}</div>` : ''}
+            <div class="main">${formatMoney(e.amountInBase, state.baseCurrency)}</div>
+            ${!sameBase ? `<div class="sub">${formatAmount(e.amount)} ${e.currency}</div>` : ''}
           </div>
           <button class="btn-card edit ${isEditing ? 'active' : ''}" onclick="toggleEdit(${e.id})"
             style="${isEditing ? 'color:var(--accent);background:var(--accent-light);' : ''}">
@@ -1716,104 +2770,127 @@ function renderExpensesList() {
       </div>
       ${editPanel}
     </div>`;
-  }).join('');
-}
+          })
+          .join('');
+      }
 
-// ─── LIQUIDACIÓN ──────────────────────────────────────────────────────────────
-function calcularLiquidacion() {
-  const errEl = document.getElementById('error-box');
-  errEl.style.display = 'none';
+      // ─── LIQUIDACIÓN ──────────────────────────────────────────────────────────────
+      function calcularLiquidacion() {
+        const errEl = document.getElementById('error-box');
+        errEl.style.display = 'none';
 
-  if (!state.expenses.length) {
-    errEl.textContent = 'No hay gastos cargados.';
-    errEl.style.display = 'block';
-    return;
-  }
+        if (!state.expenses.length) {
+          errEl.textContent = 'No hay gastos cargados.';
+          errEl.style.display = 'block';
+          return;
+        }
 
-  // 1. PAGOS (en base)
-  const pagos = {};
-  state.expenses.forEach(e => {
-    const monto = Math.round(e.amountInBase * 100);
-    pagos[e.paidBy] = (pagos[e.paidBy] || 0) + monto;
-  });
+        // 1. PAGOS (en base)
+        const pagos = {};
+        state.expenses.forEach(e => {
+          const monto = Math.round(e.amountInBase * 100);
+          pagos[e.paidBy] = (pagos[e.paidBy] || 0) + monto;
+        });
 
-  // 2. CONSUMOS (en base)
-  const consumos = {};
-  state.expenses.forEach(e => {
-    const currObj = allCurrencies().find(c => c.code === e.currency);
-    // splits are in e.currency units
-    // amountInBase / amount = conversion factor
-    const convFactor = e.amount > 0 ? e.amountInBase / e.amount : 1;
-    Object.entries(e.splits).forEach(([persona, montoMoneda]) => {
-      const montoBase = Math.round(montoMoneda * convFactor * 100);
-      consumos[persona] = (consumos[persona] || 0) + montoBase;
-    });
-  });
+        // 2. CONSUMOS (en base)
+        const consumos = {};
+        state.expenses.forEach(e => {
+          const currObj = allCurrencies().find(c => c.code === e.currency);
+          // splits are in e.currency units
+          // amountInBase / amount = conversion factor
+          const convFactor = e.amount > 0 ? e.amountInBase / e.amount : 1;
+          Object.entries(e.splits).forEach(([persona, montoMoneda]) => {
+            const montoBase = Math.round(montoMoneda * convFactor * 100);
+            consumos[persona] = (consumos[persona] || 0) + montoBase;
+          });
+        });
 
-  // 3. TOLERANCIA
-  const totalP = Object.values(pagos).reduce((a, b) => a + b, 0);
-  const totalC = Object.values(consumos).reduce((a, b) => a + b, 0);
-  if (Math.abs(totalP - totalC) > 100) {
-    errEl.innerHTML = `Los totales no cuadran.<br><small>Pagado: ${(totalP/100).toFixed(2)} · Consumido: ${(totalC/100).toFixed(2)}</small>`;
-    errEl.style.display = 'block';
-  }
+        // 3. TOLERANCIA
+        const totalP = Object.values(pagos).reduce((a, b) => a + b, 0);
+        const totalC = Object.values(consumos).reduce((a, b) => a + b, 0);
+        if (Math.abs(totalP - totalC) > 100) {
+          errEl.innerHTML = `Los totales no cuadran.<br><small>Pagado: ${formatMoney(totalP / 100, state.baseCurrency)} · Consumido: ${formatMoney(totalC / 100, state.baseCurrency)}</small>`;
+          errEl.style.display = 'block';
+        }
 
-  // 4. BALANCES
-  const personas = new Set([...Object.keys(pagos), ...Object.keys(consumos)]);
-  const balances = {};
-  const resumen = [];
-  personas.forEach(p => {
-    const pago = pagos[p] || 0;
-    const consumo = consumos[p] || 0;
-    balances[p] = pago - consumo;
-    resumen.push({ persona: p, pago, consumo, balance: pago - consumo });
-  });
+        // 4. BALANCES
+        const personas = new Set([
+          ...Object.keys(pagos),
+          ...Object.keys(consumos),
+        ]);
+        const balances = {};
+        const resumen = [];
+        personas.forEach(p => {
+          const pago = pagos[p] || 0;
+          const consumo = consumos[p] || 0;
+          balances[p] = pago - consumo;
+          resumen.push({ persona: p, pago, consumo, balance: pago - consumo });
+        });
 
-  const sym = { ARS:'$', USD:'US$', EUR:'€', CLP:'$', BRL:'R$', UYU:'$', MXN:'$' }[state.baseCurrency] || '$';
-
-  const tbody = document.getElementById('balance-tbody');
-  tbody.innerHTML = resumen.map(r => {
-    const cls = r.balance > 0 ? 'text-green fw-700' : r.balance < 0 ? 'text-red fw-700' : 'text-muted';
-    const sign = r.balance > 0 ? '+' : '';
-    const color = colorFor(r.persona);
-    return `<tr>
+        const tbody = document.getElementById('balance-tbody');
+        tbody.innerHTML = resumen
+          .map(r => {
+            const cls =
+              r.balance > 0
+                ? 'text-green fw-700'
+                : r.balance < 0
+                  ? 'text-red fw-700'
+                  : 'text-muted';
+            const sign = r.balance > 0 ? '+' : r.balance < 0 ? '-' : '';
+            const absBalance = Math.abs(r.balance / 100);
+            const color = colorFor(r.persona);
+            return `<tr>
       <td><div class="avatar-cell">
         <div class="mini-avatar" style="background:${color};">${initials(r.persona)}</div>
-        ${r.persona}
+        <span class="avatar-name">${r.persona}</span>
       </div></td>
-      <td>${sym}${(r.pago/100).toFixed(2)}</td>
-      <td>${sym}${(r.consumo/100).toFixed(2)}</td>
-      <td class="${cls}">${sign}${sym}${(r.balance/100).toFixed(2)}</td>
+      <td>${formatMoney(r.pago / 100, state.baseCurrency)}</td>
+      <td>${formatMoney(r.consumo / 100, state.baseCurrency)}</td>
+      <td class="${cls}">${sign}${formatMoney(absBalance, state.baseCurrency)}</td>
     </tr>`;
-  }).join('');
+          })
+          .join('');
 
-  // 5. COMPENSACIÓN
-  const deudores = resumen.filter(r => r.balance < 0)
-    .map(r => ({ persona: r.persona, monto: Math.abs(r.balance) }))
-    .sort((a, b) => b.monto - a.monto);
-  const acreedores = resumen.filter(r => r.balance > 0)
-    .map(r => ({ persona: r.persona, monto: r.balance }))
-    .sort((a, b) => b.monto - a.monto);
+        // 5. COMPENSACIÓN
+        const deudores = resumen
+          .filter(r => r.balance < 0)
+          .map(r => ({ persona: r.persona, monto: Math.abs(r.balance) }))
+          .sort((a, b) => b.monto - a.monto);
+        const acreedores = resumen
+          .filter(r => r.balance > 0)
+          .map(r => ({ persona: r.persona, monto: r.balance }))
+          .sort((a, b) => b.monto - a.monto);
 
-  _liquidacion = [];
-  let i = 0, j = 0;
-  while (i < deudores.length && j < acreedores.length) {
-    const d = deudores[i], a = acreedores[j];
-    const pago = Math.min(d.monto, a.monto);
-    if (pago > 0) { _liquidacion.push({ deudor: d.persona, acreedor: a.persona, monto: pago }); d.monto -= pago; a.monto -= pago; }
-    if (d.monto === 0) i++;
-    if (a.monto === 0) j++;
-  }
+        _liquidacion = [];
+        let i = 0,
+          j = 0;
+        while (i < deudores.length && j < acreedores.length) {
+          const d = deudores[i],
+            a = acreedores[j];
+          const pago = Math.min(d.monto, a.monto);
+          if (pago > 0) {
+            _liquidacion.push({
+              deudor: d.persona,
+              acreedor: a.persona,
+              monto: pago,
+            });
+            d.monto -= pago;
+            a.monto -= pago;
+          }
+          if (d.monto === 0) i++;
+          if (a.monto === 0) j++;
+        }
 
-  const settEl = document.getElementById('settlements-list');
-  if (!_liquidacion.length) {
-    settEl.innerHTML = '<div class="empty-state"><div class="icon">🎉</div>¡Todos están a mano!</div>';
-  } else {
-    settEl.innerHTML = _liquidacion.map((l, idx) => {
-      const dc = colorFor(l.deudor);
-      const ac = colorFor(l.acreedor);
-      const montoFmt = (l.monto/100).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      return `<div class="transfer-card" style="animation-delay:${idx * 90}ms">
+        const settEl = document.getElementById('settlements-list');
+        if (!_liquidacion.length) {
+          settEl.innerHTML =
+            '<div class="empty-state"><div class="icon">🎉</div>¡Todos están a mano!</div>';
+        } else {
+          settEl.innerHTML = _liquidacion
+            .map((l, idx) => {
+              const dc = colorFor(l.deudor);
+              const ac = colorFor(l.acreedor);
+              return `<div class="transfer-card" style="animation-delay:${idx * 90}ms">
         <div class="transfer-body">
           <div class="transfer-person">
             <div class="transfer-avatar" style="background:${dc};">${initials(l.deudor)}</div>
@@ -1841,37 +2918,47 @@ function calcularLiquidacion() {
         <div class="transfer-amount-bar">
           <span class="transfer-amount-label">Transferencia</span>
           <div style="text-align:right;">
-            <div class="transfer-amount-value">${sym}${montoFmt}</div>
+            <div class="transfer-amount-value">${formatMoney(l.monto / 100, state.baseCurrency)}</div>
           </div>
         </div>
       </div>`;
-    }).join('');
-  }
-}
+            })
+            .join('');
+        }
+      }
 
-function renderAltCurrencySection() {
-  const sel = document.getElementById('alt-currency-select');
-  const section = document.getElementById('alt-currency-section');
-  if (!state.extraCurrencies.length) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  sel.innerHTML = '<option value="">Seleccionar...</option>' +
-    state.extraCurrencies.map(c => `<option value="${c.code}">${c.code}</option>`).join('');
-}
+      function renderAltCurrencySection() {
+        const sel = document.getElementById('alt-currency-select');
+        const section = document.getElementById('alt-currency-section');
+        if (!state.extraCurrencies.length) {
+          section.style.display = 'none';
+          return;
+        }
+        section.style.display = 'block';
+        sel.innerHTML =
+          '<option value="">Seleccionar...</option>' +
+          state.extraCurrencies
+            .map(c => `<option value="${c.code}">${c.code}</option>`)
+            .join('');
+      }
 
-function renderAltAmounts() {
-  const code = document.getElementById('alt-currency-select').value;
-  const listEl = document.getElementById('alt-amounts-list');
-  if (!code || !_liquidacion.length) { listEl.innerHTML = ''; return; }
-  const currObj = state.extraCurrencies.find(c => c.code === code);
-  if (!currObj) return;
-  const sym = { ARS:'$', USD:'US$', EUR:'€', CLP:'$', BRL:'R$', UYU:'$', MXN:'$' }[state.baseCurrency] || '$';
-  // 1 BASE = currObj.rate EXTRA → amountInBase * currObj.rate = amountInExtra
-  listEl.innerHTML = _liquidacion.map((l, idx) => {
-    const montoBase = l.monto / 100;
-    const montoAlt = montoBase * currObj.rate;
-    const dc = colorFor(l.deudor);
-    const ac = colorFor(l.acreedor);
-    return `<div class="transfer-card" style="animation-delay:${idx * 90}ms">
+      function renderAltAmounts() {
+        const code = document.getElementById('alt-currency-select').value;
+        const listEl = document.getElementById('alt-amounts-list');
+        if (!code || !_liquidacion.length) {
+          listEl.innerHTML = '';
+          return;
+        }
+        const currObj = state.extraCurrencies.find(c => c.code === code);
+        if (!currObj) return;
+        // 1 BASE = currObj.rate EXTRA → amountInBase * currObj.rate = amountInExtra
+        listEl.innerHTML = _liquidacion
+          .map((l, idx) => {
+            const montoBase = l.monto / 100;
+            const montoAlt = montoBase * currObj.rate;
+            const dc = colorFor(l.deudor);
+            const ac = colorFor(l.acreedor);
+            return `<div class="transfer-card" style="animation-delay:${idx * 90}ms">
       <div class="transfer-body">
         <div class="transfer-person">
           <div class="transfer-avatar" style="background:${dc};">${initials(l.deudor)}</div>
@@ -1900,104 +2987,140 @@ function renderAltAmounts() {
         <span class="transfer-amount-label">Transferencia</span>
         <div style="text-align:right;">
           <div class="transfer-amount-value">${Math.round(montoAlt).toLocaleString('es-AR')} ${code}</div>
-          <div class="transfer-amount-alt">${sym}${montoBase.toFixed(2)} ${state.baseCurrency}</div>
+          <div class="transfer-amount-alt">${formatMoney(montoBase, state.baseCurrency)} ${state.baseCurrency}</div>
         </div>
       </div>
     </div>`;
-  }).join('');
-}
+          })
+          .join('');
+      }
 
-// ─── HISTORIAL ────────────────────────────────────────────────────────────────
-const HISTORY_KEY = 'divisor-history-v1';
-const MAX_HISTORY = 20;
+      // ─── HISTORIAL ────────────────────────────────────────────────────────────────
+      const HISTORY_KEY = 'divisor-history-v1';
+      const MAX_HISTORY = 10;
 
-function loadHistory() {
-  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; }
-}
-function saveHistory(list) {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
-}
+      function loadHistory() {
+        try {
+          return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+        } catch {
+          return [];
+        }
+      }
+      function saveHistory(list) {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+      }
 
-function _saveToHistory() {
-  const history = loadHistory();
-  const totalBase = state.expenses.reduce((s, e) => s + e.amountInBase, 0);
-  const entry = {
-    id: Date.now().toString(),
-    savedAt: new Date().toISOString(),
-    tripName: state.tripName || 'Sin nombre',
-    participants: [...state.participants],
-    expenseCount: state.expenses.length,
-    baseCurrency: state.baseCurrency,
-    totalBase,
-    snapshot: JSON.parse(JSON.stringify(state))
-  };
-  history.unshift(entry);
-  if (history.length > MAX_HISTORY) history.splice(MAX_HISTORY);
-  saveHistory(history);
-  updateHistoryBadge();
-}
+      function _saveToHistory(snapshot, options = {}) {
+        const history = loadHistory();
+        const totalBase = snapshot.expenses.reduce(
+          (s, e) => s + e.amountInBase,
+          0,
+        );
+        const shareId = options.shareId || null;
+        const isOwner = options.isOwner ?? false;
+        const list = shareId
+          ? history.filter(s => s.shareId !== shareId)
+          : history;
+        const entry = {
+          id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+          savedAt: new Date().toISOString(),
+          tripName: snapshot.tripName || 'Sin nombre',
+          participants: [...snapshot.participants],
+          expenseCount: snapshot.expenses.length,
+          baseCurrency: snapshot.baseCurrency,
+          totalBase: roundAmount(totalBase),
+          shareId,
+          isOwner,
+          snapshot: JSON.parse(JSON.stringify(snapshot)),
+        };
+        list.unshift(entry);
+        if (list.length > MAX_HISTORY) list.splice(MAX_HISTORY);
+        saveHistory(list);
+        updateHistoryBadge();
+      }
 
-function deleteSession(id, e) {
-  e.stopPropagation();
-  const history = loadHistory().filter(s => s.id !== id);
-  saveHistory(history);
-  updateHistoryBadge();
-  renderHistoryList();
-  showToast('🗑️ Sesión eliminada');
-}
+      function deleteSession(id, e) {
+        e.stopPropagation();
+        const history = loadHistory().filter(s => s.id !== id);
+        saveHistory(history);
+        updateHistoryBadge();
+        renderHistoryList();
+        showToast('🗑️ Sesión eliminada');
+      }
 
-function loadSession(id) {
-  const entry = loadHistory().find(s => s.id === id);
-  if (!entry) return;
-  if (!confirm(`¿Cargar la sesión "${entry.tripName}"? Los datos actuales se reemplazarán.`)) return;
-  state = JSON.parse(JSON.stringify(entry.snapshot));
-  save();
-  closeHistory();
-  applyStateToUI();
-  showToast(`📂 "${entry.tripName}" cargada`);
-}
+      function loadSession(id) {
+        const entry = loadHistory().find(s => s.id === id);
+        if (!entry) return;
+        if (
+          !confirm(
+            `¿Cargar la sesión "${entry.tripName}"? Los datos actuales se reemplazarán.`,
+          )
+        )
+          return;
+        state = JSON.parse(JSON.stringify(entry.snapshot));
+        save();
+        closeHistory();
+        applyStateToUI();
+        showToast(`📂 "${entry.tripName}" cargada`);
+      }
 
-function applyStateToUI() {
-  document.getElementById('trip-name').value = state.tripName;
-  document.getElementById('base-currency-select').value = state.baseCurrency;
-  renderHeaderName();
-  renderChips();
-  renderExtraCurrencies();
-  renderPayerGrid();
-  renderExpensesList();
-  renderCurrencyRateLabel();
-  goToStep(1);
-}
+      function applyStateToUI() {
+        document.getElementById('trip-name').value = state.tripName;
+        document.getElementById('base-currency-select').value =
+          state.baseCurrency;
+        renderHeaderName();
+        renderChips();
+        renderExtraCurrencies();
+        renderPayerGrid();
+        renderExpensesList();
+        renderCurrencyRateLabel();
+        goToStep(1);
+      }
 
-function updateHistoryBadge() {
-  const count = loadHistory().length;
-  const badge = document.getElementById('history-count');
-  const btn = document.getElementById('btn-history');
-  if (count > 0) {
-    badge.textContent = count;
-    badge.style.display = 'inline-flex';
-  } else {
-    badge.style.display = 'none';
-  }
-}
+      function updateHistoryBadge() {
+        const count = loadHistory().length;
+        const badge = document.getElementById('history-count');
+        const btn = document.getElementById('btn-history');
+        if (count > 0) {
+          badge.textContent = count;
+          badge.style.display = 'inline-flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
 
-function renderHistoryList() {
-  const el = document.getElementById('history-list');
-  const history = loadHistory();
-  if (!history.length) {
-    el.innerHTML = '<div class="empty-state"><div class="icon">📂</div>Sin sesiones guardadas</div>';
-    return;
-  }
-  const sym = (cur) => ({ ARS:'$', USD:'US$', EUR:'€', CLP:'$', BRL:'R$', UYU:'$', MXN:'$' }[cur] || '$');
-  el.innerHTML = history.map((s, i) => {
-    const date = new Date(s.savedAt);
-    const dateStr = date.toLocaleDateString('es-AR', { day:'2-digit', month:'short', year:'numeric' });
-    const timeStr = date.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' });
-    const avatars = s.participants.slice(0, 5).map(p =>
-      `<span class="session-avatar-sm" style="background:${colorFor(p)};">${initials(p)}</span>`
-    ).join('');
-    const extra = s.participants.length > 5 ? `<span class="session-avatar-sm" style="background:var(--muted);">+${s.participants.length - 5}</span>` : '';
-    return `<div class="session-card" style="animation-delay:${i * 40}ms" onclick="loadSession('${s.id}')">
+      function renderHistoryList() {
+        const el = document.getElementById('history-list');
+        const history = loadHistory();
+        if (!history.length) {
+          el.innerHTML =
+            '<div class="empty-state"><div class="icon">📂</div>Sin sesiones guardadas</div>';
+          return;
+        }
+        el.innerHTML = history
+          .map((s, i) => {
+            const date = new Date(s.savedAt);
+            const dateStr = date.toLocaleDateString('es-AR', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            });
+            const timeStr = date.toLocaleTimeString('es-AR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+            const avatars = s.participants
+              .slice(0, 5)
+              .map(
+                p =>
+                  `<span class="session-avatar-sm" style="background:${colorFor(p)};">${initials(p)}</span>`,
+              )
+              .join('');
+            const extra =
+              s.participants.length > 5
+                ? `<span class="session-avatar-sm" style="background:var(--muted);">+${s.participants.length - 5}</span>`
+                : '';
+            return `<div class="session-card" style="animation-delay:${i * 40}ms" onclick="loadSession('${s.id}')">
       <div class="session-card-top">
         <div class="session-card-name">${s.tripName}</div>
         <div class="session-card-date">${dateStr} · ${timeStr}</div>
@@ -2006,116 +3129,153 @@ function renderHistoryList() {
         <div style="display:flex; gap:0;">${avatars}${extra}</div>
         <span class="session-card-badge">💳 ${s.expenseCount} gastos</span>
         <span class="session-card-badge" style="background:var(--green-light); color:var(--green);">
-          ${sym(s.baseCurrency)}${s.totalBase.toLocaleString('es-AR', {maximumFractionDigits:0})} ${s.baseCurrency}
+          ${formatMoney(s.totalBase, s.baseCurrency)} ${s.baseCurrency}
+        </span>
+        <span class="session-card-badge" style="background:${s.isOwner ? 'var(--accent-light)' : 'var(--surface)'}; color:${s.isOwner ? 'var(--accent)' : 'var(--muted)'};">
+          ${s.isOwner ? '🧑‍💻 Propia' : '👁️ Compartida'}
         </span>
       </div>
       <div class="session-card-actions">
         <button class="btn btn-primary btn-sm" style="flex:1;" onclick="loadSession('${s.id}')">📂 Cargar</button>
-        <button class="btn btn-ghost btn-sm" onclick="shareSession('${s.id}', event)">🔗 Compartir</button>
+        ${s.isOwner ? `<button class="btn btn-ghost btn-sm" onclick="shareSession('${s.id}', event)">🔗 Compartir</button>` : ''}
         <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteSession('${s.id}', event)">🗑️</button>
       </div>
     </div>`;
-  }).join('');
-}
+          })
+          .join('');
+      }
 
-// ─── HISTORIAL DRAWER ─────────────────────────────────────────────────────────
-function openHistory() {
-  renderHistoryList();
-  document.getElementById('history-overlay').style.display = 'flex';
-}
-function closeHistory() {
-  document.getElementById('history-overlay').style.display = 'none';
-}
-function closeHistoryIfOverlay(e) {
-  if (e.target === document.getElementById('history-overlay')) closeHistory();
-}
+      // ─── HISTORIAL DRAWER ─────────────────────────────────────────────────────────
+      function openHistory() {
+        renderHistoryList();
+        document.getElementById('history-overlay').style.display = 'flex';
+      }
+      function closeHistory() {
+        document.getElementById('history-overlay').style.display = 'none';
+      }
+      function closeHistoryIfOverlay(e) {
+        if (e.target === document.getElementById('history-overlay'))
+          closeHistory();
+      }
 
-// ─── SHARE (servidor → ID corto ~6 chars) ────────────────────────────────────
-let _isSharedView = false;
+      // ─── SHARE (servidor → ID corto ~6 chars) ────────────────────────────────────
+      let _isSharedView = false;
 
-function _copyToClipboard(text) {
-  navigator.clipboard.writeText(text).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.focus(); ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-  });
-}
+      function _copyToClipboard(text) {
+        navigator.clipboard.writeText(text).catch(() => {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        });
+      }
 
-async function _publishSnapshot(snapshot) {
-  const res = await fetch('/api/s', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(snapshot),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || res.status);
-  }
-  const { id } = await res.json();
-  return `${location.origin}${location.pathname}?s=${id}`;
-}
+      async function _publishSnapshot(snapshot) {
+        const res = await fetch('/api/s', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(snapshot),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || res.status);
+        }
+        const { id } = await res.json();
+        return `${location.origin}${location.pathname}?s=${id}`;
+      }
 
-async function saveAndShare() {
-  if (!state.expenses.length && !state.participants.length) {
-    showToast('⚠️ No hay datos para compartir');
-    return;
-  }
-  const btn = document.getElementById('btn-compartir');
-  btn.disabled = true;
-  btn.textContent = 'Generando…';
-  try {
-    _saveToHistory();
-    const url = await _publishSnapshot(state);
-    _copyToClipboard(url);
-    showToast('🔗 Link copiado — sesión guardada');
-  } catch (err) {
-    console.error(err);
-    showToast('⚠️ Error al generar el link');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Compartir`;
-  }
-}
+      async function saveAndShare() {
+        if (!state.expenses.length && !state.participants.length) {
+          showToast('⚠️ No hay datos para compartir');
+          return;
+        }
+        const btn = document.getElementById('btn-compartir');
+        btn.disabled = true;
+        btn.textContent = 'Generando…';
+        try {
+          const snapshot = JSON.parse(JSON.stringify(state));
+          snapshot._shareMeta = {
+            ownerId: CURRENT_USER_ID,
+            sharedAt: new Date().toISOString(),
+          };
+          const url = await _publishSnapshot(snapshot);
+          const shareId = new URL(url).searchParams.get('s');
+          _saveToHistory(snapshot, { shareId, isOwner: true });
+          _copyToClipboard(url);
+          showToast('🔗 Link copiado — sesión guardada');
+        } catch (err) {
+          console.error(err);
+          showToast('⚠️ Error al generar el link');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Compartir`;
+        }
+      }
 
-async function shareSession(id, e) {
-  e.stopPropagation();
-  const entry = loadHistory().find(s => s.id === id);
-  if (!entry) return;
-  try {
-    const url = await _publishSnapshot(entry.snapshot);
-    _copyToClipboard(url);
-    showToast('🔗 Link copiado al portapapeles');
-  } catch { showToast('⚠️ Error al generar el link'); }
-}
+      async function shareSession(id, e) {
+        e.stopPropagation();
+        const entry = loadHistory().find(s => s.id === id);
+        if (!entry) return;
+        if (!entry.isOwner) {
+          showToast('⚠️ Solo el creador puede volver a compartir esta sesión');
+          return;
+        }
+        try {
+          const url = await _publishSnapshot(entry.snapshot);
+          _copyToClipboard(url);
+          showToast('🔗 Link copiado al portapapeles');
+        } catch {
+          showToast('⚠️ Error al generar el link');
+        }
+      }
 
-// ─── SHARED SESSION DETECTION ─────────────────────────────────────────────────
-async function checkSharedUrl() {
-  const params = new URLSearchParams(location.search);
-  const sid = params.get('s');
-  if (!sid) return;
-  history.replaceState({}, '', location.pathname);
+      // ─── SHARED SESSION DETECTION ─────────────────────────────────────────────────
+      async function checkSharedUrl() {
+        const params = new URLSearchParams(location.search);
+        const sid = params.get('s');
+        if (!sid) return;
+        history.replaceState({}, '', location.pathname);
 
-  try {
-    const res = await fetch(`/api/s/${sid}`);
-    if (!res.ok) { showToast('⚠️ Sesión no encontrada o expirada (30 días)'); return; }
-    const shared = await res.json();
-    if (!Array.isArray(shared.participants) || !Array.isArray(shared.expenses)) throw new Error();
-    _isSharedView = true;
-    state = shared;
-    document.getElementById('trip-name').value = state.tripName;
-    document.getElementById('base-currency-select').value = state.baseCurrency;
-    renderHeaderName(); renderChips(); renderExtraCurrencies();
-    renderPayerGrid(); renderExpensesList(); renderCurrencyRateLabel();
-    goToStep(4);
-    showSharedBanner(state.tripName);
-  } catch { showToast('⚠️ Link inválido o expirado'); }
-}
+        try {
+          const res = await fetch(`/api/s/${sid}`);
+          if (!res.ok) {
+            showToast('⚠️ Sesión no encontrada o expirada (30 días)');
+            return;
+          }
+          const shared = await res.json();
+          if (
+            !Array.isArray(shared.participants) ||
+            !Array.isArray(shared.expenses)
+          )
+            throw new Error();
+          _isSharedView = true;
+          state = shared;
+          const isOwner = shared?._shareMeta?.ownerId === CURRENT_USER_ID;
+          _saveToHistory(shared, { shareId: sid, isOwner });
+          document.getElementById('trip-name').value = state.tripName;
+          document.getElementById('base-currency-select').value =
+            state.baseCurrency;
+          renderHeaderName();
+          renderChips();
+          renderExtraCurrencies();
+          renderPayerGrid();
+          renderExpensesList();
+          renderCurrencyRateLabel();
+          goToStep(4);
+          showSharedBanner(state.tripName);
+        } catch {
+          showToast('⚠️ Link inválido o expirado');
+        }
+      }
 
-function showSharedBanner(tripName) {
-  const banner = document.getElementById('shared-banner');
-  banner.innerHTML = `<div class="shared-banner">
+      function showSharedBanner(tripName) {
+        const banner = document.getElementById('shared-banner');
+        banner.innerHTML = `<div class="shared-banner">
     <div style="flex:1;">
       <div class="shared-banner-text">👁️ Vista compartida: <strong>${tripName || 'Sin nombre'}</strong></div>
       <div class="shared-banner-sub">Solo lectura · expira en 30 días</div>
@@ -2123,50 +3283,57 @@ function showSharedBanner(tripName) {
     <button class="btn btn-ghost btn-sm" style="background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.3);color:white;" onclick="startNewSession()">+ Nueva sesión</button>
     <button style="color:white;background:rgba(255,255,255,0.15);border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;" onclick="dismissSharedBanner()">✕</button>
   </div>`;
-  banner.style.display = 'block';
-}
+        banner.style.display = 'block';
+      }
 
-function dismissSharedBanner() {
-  const b = document.getElementById('shared-banner');
-  b.innerHTML = ''; b.style.display = 'none';
-}
+      function dismissSharedBanner() {
+        const b = document.getElementById('shared-banner');
+        b.innerHTML = '';
+        b.style.display = 'none';
+      }
 
-function startNewSession() {
-  _isSharedView = false;
-  state = { tripName:'', participants:[], baseCurrency:'ARS', extraCurrencies:[], expenses:[] };
-  save();
-  dismissSharedBanner();
-  applyStateToUI();
-}
+      function startNewSession() {
+        _isSharedView = false;
+        state = {
+          tripName: '',
+          participants: [],
+          baseCurrency: 'ARS',
+          extraCurrencies: [],
+          expenses: [],
+        };
+        save();
+        dismissSharedBanner();
+        applyStateToUI();
+      }
 
-// ─── TOAST ────────────────────────────────────────────────────────────────────
-let _toastTimer;
-function showToast(msg) {
-  const existing = document.querySelector('.toast');
-  if (existing) existing.remove();
-  clearTimeout(_toastTimer);
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.textContent = msg;
-  document.body.appendChild(t);
-  _toastTimer = setTimeout(() => {
-    t.classList.add('out');
-    setTimeout(() => t.remove(), 300);
-  }, 2800);
-}
+      // ─── TOAST ────────────────────────────────────────────────────────────────────
+      let _toastTimer;
+      function showToast(msg) {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        clearTimeout(_toastTimer);
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        _toastTimer = setTimeout(() => {
+          t.classList.add('out');
+          setTimeout(() => t.remove(), 300);
+        }, 2800);
+      }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-document.getElementById('trip-name').value = state.tripName;
-document.getElementById('base-currency-select').value = state.baseCurrency;
-renderHeaderName();
-renderChips();
-renderExtraCurrencies();
-renderPayerGrid();
-renderExpensesList();
-renderCurrencyRateLabel();
-updateHistoryBadge();
-checkSharedUrl();
-</script>
-
-</body>
+      // ─── INIT ─────────────────────────────────────────────────────────────────────
+      document.getElementById('trip-name').value = state.tripName;
+      document.getElementById('base-currency-select').value =
+        state.baseCurrency;
+      renderHeaderName();
+      renderChips();
+      renderExtraCurrencies();
+      renderPayerGrid();
+      renderExpensesList();
+      renderCurrencyRateLabel();
+      updateHistoryBadge();
+      checkSharedUrl();
+    </script>
+  </body>
 </html>
