@@ -6,20 +6,21 @@
 ![Astro](https://img.shields.io/badge/Astro-4.x-BC52EE?style=flat-square&logo=astro)
 ![Vanilla JS](https://img.shields.io/badge/Vanilla_JS-ES6+-F7DF1E?style=flat-square&logo=javascript)
 ![CSS](https://img.shields.io/badge/CSS-Pure-1572B6?style=flat-square&logo=css3)
-![No backend](https://img.shields.io/badge/Backend-None-gray?style=flat-square)
+![Upstash Redis](https://img.shields.io/badge/Redis-Upstash-00E9A3?style=flat-square&logo=redis)
 
 ---
 
 ## ✨ Funcionalidades
 
-| Feature | Descripción |
-| --- | --- |
-| 👥 **Participantes** | Avatares con color único generado por nombre |
-| 💱 **Multi-moneda** | Moneda base configurable + equivalencias opcionales |
-| ⚡ **Carga rápida** | Click en avatar para seleccionar pagador, Enter para agregar |
-| ✏️ **Edición inline** | Editá quién pagó y la división sin salir de la lista |
-| 🧮 **Liquidación** | Mínimas transferencias para saldar todas las deudas |
-| 💾 **Persistencia local** | Todo se guarda en `localStorage`, sin cuenta ni login |
+| Feature                     | Descripción                                                   |
+| --------------------------- | ------------------------------------------------------------- |
+| 👥 **Participantes**        | Avatares con color único generado por nombre                  |
+| 💱 **Multi-moneda**         | Moneda base configurable + equivalencias opcionales           |
+| ⚡ **Carga rápida**         | Click en avatar para seleccionar pagador, Enter para agregar  |
+| ✏️ **Edición inline**       | Editá quién pagó y la división sin salir de la lista          |
+| 🧮 **Liquidación**          | Mínimas transferencias para saldar todas las deudas           |
+| 💾 **Persistencia local**   | Todo se guarda en `localStorage`, sin cuenta ni login         |
+| 🔗 **Sesiones compartidas** | Guarda snapshot en Redis y genera links cortos para compartir |
 
 ---
 
@@ -65,8 +66,19 @@ Ejemplo: base `ARS`, agregar `USD` con tasa `0.00068` (1 ARS = 0.00068 USD).
 Astro 4      Framework estático (SSG)
 Vanilla JS   Lógica de app en <script is:inline>
 CSS puro     Sin frameworks de UI — is:global para elementos dinámicos
-localStorage Persistencia del estado sin backend
+Astro API     Endpoints `/api/s` para publicar/cargar sesiones
+Upstash Redis Persistencia temporal de sesiones compartidas (TTL 30 días)
+localStorage  Persistencia local para historial del navegador
 ```
+
+## ☁️ Variables de entorno (Vercel)
+
+Para habilitar sesiones compartidas entre usuarios, configurá estas variables en el proyecto de Vercel:
+
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+
+Sin esas variables, las rutas de sesión (`/api/s`) responderán con error `503`.
 
 ### Estructura del proyecto
 

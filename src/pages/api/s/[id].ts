@@ -1,6 +1,7 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+import { getRedisClient } from '../../../lib/redis';
 
 export const GET: APIRoute = async ({ params }) => {
   const id = params.id ?? '';
@@ -8,11 +9,7 @@ export const GET: APIRoute = async ({ params }) => {
     return new Response('Not found', { status: 404 });
   }
   try {
-    const { Redis } = await import('@upstash/redis');
-    const redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    });
+    const redis = await getRedisClient();
 
     const data = await redis.get<string>(`s:${id}`);
     if (!data) return new Response('Not found', { status: 404 });
@@ -23,6 +20,8 @@ export const GET: APIRoute = async ({ params }) => {
     });
   } catch (err) {
     console.error('[GET /api/s]', err);
-    return new Response('Error', { status: 500 });
+    const message = err instanceof Error ? err.message : 'Error';
+    const status = message.includes('UPSTASH_REDIS_REST_') ? 503 : 500;
+    return new Response(message, { status });
   }
 };
