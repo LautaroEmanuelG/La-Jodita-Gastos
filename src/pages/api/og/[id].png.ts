@@ -24,63 +24,28 @@ const sumExpensesBase = (expenses: unknown): number => {
   }, 0);
 };
 
-const extractEmojis = (expenses: unknown): string[] => {
-  if (!Array.isArray(expenses)) return ['💸', '🍻', '🧉', '🎉'];
-
-  const unique = [
-    ...new Set(
-      expenses
-        .map(item => {
-          const row = item as Record<string, unknown>;
-          return typeof row.emoji === 'string' ? row.emoji.trim() : '';
-        })
-        .filter(Boolean),
-    ),
-  ];
-
-  return unique.length ? unique.slice(0, 4) : ['💸', '🍻', '🧉', '🎉'];
-};
-
 const getTensionAmount = (value: number): string => {
   const digits = Math.abs(Math.round(value)).toString();
   return `${digits.slice(0, 3)}...`;
 };
 
-const pickEmojiFromPool = (seedText: string): string => {
+const getEmojiTrio = (seedText: string): string[] => {
   const hash = seedText
     .split('')
     .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-  return APP_EMOJI_POOL[hash % APP_EMOJI_POOL.length] ?? APP_EMOJI_POOL[0];
+  const start = hash % APP_EMOJI_POOL.length;
+  return [0, 1, 2].map(
+    offset => APP_EMOJI_POOL[(start + offset) % APP_EMOJI_POOL.length],
+  );
 };
 
 const buildImage = (input: {
-  title: string;
-  subtitle: string;
-  totalLabel: string;
+  amountLabel: string;
   emojis: string[];
   iconUrl: string;
 }) => {
-  const { title, subtitle, totalLabel, emojis, iconUrl } = input;
-
-  const emojiBadges = emojis.map(emoji =>
-    h(
-      'div',
-      {
-        style: {
-          width: '58px',
-          height: '58px',
-          borderRadius: '18px',
-          background: '#f2efff',
-          border: '1px solid #ddd7fb',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '34px',
-        },
-      },
-      emoji,
-    ),
-  );
+  const { amountLabel, emojis, iconUrl } = input;
+  const emojiInline = emojis.join(' ');
 
   return new ImageResponse(
     h(
@@ -135,7 +100,8 @@ const buildImage = (input: {
             display: 'flex',
             flexDirection: 'column',
             padding: '36px 42px',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
+            gap: '28px',
           },
         },
         h(
@@ -160,59 +126,27 @@ const buildImage = (input: {
               'div',
               {
                 style: {
-                  fontSize: '22px',
+                  fontSize: '54px',
                   fontWeight: 700,
-                  color: '#6c5ce7',
-                  letterSpacing: '-0.2px',
+                  color: '#1e1b3a',
+                  letterSpacing: '-1px',
                 },
               },
-              'La Jodita',
-            ),
-            h(
-              'div',
-              {
-                style: {
-                  fontSize: '17px',
-                  color: '#7c7a9a',
-                },
-              },
-              'Dividir gastos sin dramas',
+              'La jodita',
             ),
           ),
         ),
         h(
           'div',
-          { style: { display: 'flex', flexDirection: 'column', gap: '14px' } },
-          h(
-            'div',
-            {
-              style: {
-                fontSize: '64px',
-                fontWeight: 800,
-                color: '#1e1b3a',
-                letterSpacing: '-1.4px',
-                lineHeight: 1,
-              },
+          {
+            style: {
+              fontSize: '62px',
+              color: '#5a4fcc',
+              fontWeight: 800,
+              letterSpacing: '-1px',
             },
-            title,
-          ),
-          h(
-            'div',
-            {
-              style: {
-                fontSize: '28px',
-                color: '#5a4fcc',
-                fontWeight: 700,
-              },
-            },
-            totalLabel,
-          ),
-          h('div', { style: { fontSize: '24px', color: '#7c7a9a' } }, subtitle),
-        ),
-        h(
-          'div',
-          { style: { display: 'flex', gap: '14px', alignItems: 'center' } },
-          ...emojiBadges,
+          },
+          `${amountLabel} :$ ${emojiInline}`,
         ),
       ),
     ),
@@ -239,28 +173,14 @@ export const GET: APIRoute = async ({ params, url }) => {
     }
 
     const parsed = JSON.parse(raw) as Record<string, unknown>;
-    const tripName =
-      typeof parsed.tripName === 'string' && parsed.tripName.trim()
-        ? parsed.tripName.trim()
-        : 'Plan sin nombre';
-    const baseCurrency =
-      typeof parsed.baseCurrency === 'string' && parsed.baseCurrency.trim()
-        ? parsed.baseCurrency.trim()
-        : 'ARS';
-    const participantsCount = Array.isArray(parsed.participants)
-      ? parsed.participants.length
-      : 0;
     const expenses = Array.isArray(parsed.expenses) ? parsed.expenses : [];
     const total = Math.round(sumExpensesBase(expenses));
     const tensionAmount = getTensionAmount(total);
-    const emojis = extractEmojis(expenses);
-    const appEmoji = pickEmojiFromPool(id);
+    const emojis = getEmojiTrio(id);
     const iconUrl = `${url.origin}/icon/la-jodita.svg`;
 
     const image = buildImage({
-      title: `${appEmoji} La Jodita ${tensionAmount}`,
-      totalLabel: `${tensionAmount} ${baseCurrency}`,
-      subtitle: `${tripName} · ${participantsCount} personas`,
+      amountLabel: tensionAmount,
       emojis,
       iconUrl,
     });

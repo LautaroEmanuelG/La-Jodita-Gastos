@@ -6,9 +6,7 @@ import { getRedisClient } from '../../lib/redis';
 const SHARE_ID = Astro.params.id ?? '';
 const IS_VALID_SHARE_ID = /^[a-z0-9]{4,10}$/.test(SHARE_ID);
 
-const FALLBACK_TITLE = 'La Jodita...';
-const FALLBACK_DESCRIPTION =
-  'Dividan gastos sin dramas, con estilo y un poquito de caos. 💸😎';
+const FALLBACK_TITLE = 'La jodita ... :$ 💸 🍻 🧉';
 const APP_EMOJI_POOL = ['💸', '🍻', '🧉', '🎉', '😎', '🍕', '🚕', '🏝️'];
 
 const sumExpensesBase = (expenses: unknown): number => {
@@ -25,68 +23,36 @@ const sumExpensesBase = (expenses: unknown): number => {
   }, 0);
 };
 
-const getEmojis = (expenses: unknown): string => {
-  if (!Array.isArray(expenses)) return '💸🍻🧉🎉';
-
-  const unique = [
-    ...new Set(
-      expenses
-        .map(item => {
-          const row = item as Record<string, unknown>;
-          return typeof row.emoji === 'string' ? row.emoji.trim() : '';
-        })
-        .filter(Boolean),
-    ),
-  ];
-
-  if (!unique.length) return '💸🍻🧉🎉';
-  return unique.slice(0, 4).join(' ');
-};
-
 const getTensionAmount = (value: number): string => {
   const digits = Math.abs(Math.round(value)).toString();
   return `${digits.slice(0, 3)}...`;
 };
 
-const pickEmojiFromPool = (seedText: string): string => {
+const getEmojiTrio = (seedText: string): string => {
   const hash = seedText
     .split('')
     .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-  return APP_EMOJI_POOL[hash % APP_EMOJI_POOL.length] ?? APP_EMOJI_POOL[0];
+  const start = hash % APP_EMOJI_POOL.length;
+  const trio = [0, 1, 2].map(
+    offset => APP_EMOJI_POOL[(start + offset) % APP_EMOJI_POOL.length],
+  );
+  return trio.join(' ');
 };
 
-let tripName = 'Plan sin nombre';
 let totalInBase = 0;
-let baseCurrency = 'ARS';
-let participantsCount = 0;
-let emojis = '💸🍻🧉🎉';
-let appEmoji = APP_EMOJI_POOL[0];
+let emojiTrio = '💸 🍻 🧉';
 let shouldRedirect = false;
 
 if (IS_VALID_SHARE_ID) {
-  appEmoji = pickEmojiFromPool(SHARE_ID);
+  emojiTrio = getEmojiTrio(SHARE_ID);
   try {
     const redis = await getRedisClient();
     const raw = await redis.get<string>(`s:${SHARE_ID}`);
 
     if (raw) {
       const parsed = JSON.parse(raw) as Record<string, unknown>;
-      const participants = Array.isArray(parsed.participants)
-        ? parsed.participants
-        : [];
       const expenses = Array.isArray(parsed.expenses) ? parsed.expenses : [];
-
-      tripName =
-        typeof parsed.tripName === 'string' && parsed.tripName.trim()
-          ? parsed.tripName.trim()
-          : tripName;
-      baseCurrency =
-        typeof parsed.baseCurrency === 'string' && parsed.baseCurrency.trim()
-          ? parsed.baseCurrency.trim()
-          : baseCurrency;
       totalInBase = sumExpensesBase(expenses);
-      participantsCount = participants.length;
-      emojis = getEmojis(expenses);
       shouldRedirect = true;
     }
   } catch (error) {
@@ -97,11 +63,8 @@ if (IS_VALID_SHARE_ID) {
 const TOTAL_INT = Math.round(totalInBase);
 const TENSION_AMOUNT = getTensionAmount(TOTAL_INT);
 const TITLE = shouldRedirect
-  ? `${appEmoji} La Jodita ${TENSION_AMOUNT}`
+  ? `La jodita ${TENSION_AMOUNT} :$ ${emojiTrio}`
   : FALLBACK_TITLE;
-const DESCRIPTION = shouldRedirect
-  ? `${emojis} ${tripName} · ${participantsCount} personas · ${TENSION_AMOUNT} ${baseCurrency}`
-  : FALLBACK_DESCRIPTION;
 const OG_IMAGE = `${Astro.url.origin}/api/og/${SHARE_ID}.png`;
 const DESTINATION = `/?s=${encodeURIComponent(SHARE_ID)}`;
 ---
@@ -116,10 +79,6 @@ const DESTINATION = `/?s=${encodeURIComponent(SHARE_ID)}`;
     />
     <title>{TITLE}</title>
     <meta
-      name="description"
-      content={DESCRIPTION}
-    />
-    <meta
       property="og:type"
       content="website"
     />
@@ -130,10 +89,6 @@ const DESTINATION = `/?s=${encodeURIComponent(SHARE_ID)}`;
     <meta
       property="og:title"
       content={TITLE}
-    />
-    <meta
-      property="og:description"
-      content={DESCRIPTION}
     />
     <meta
       property="og:url"
@@ -164,10 +119,6 @@ const DESTINATION = `/?s=${encodeURIComponent(SHARE_ID)}`;
       content={TITLE}
     />
     <meta
-      name="twitter:description"
-      content={DESCRIPTION}
-    />
-    <meta
       name="twitter:image"
       content={OG_IMAGE}
     />
@@ -184,34 +135,5 @@ const DESTINATION = `/?s=${encodeURIComponent(SHARE_ID)}`;
       )
     }
   </head>
-  <body>
-    <main
-      style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f0eeff,#ebe7ff);font-family:'Segoe UI',sans-serif;padding:24px;">
-      <article
-        style="max-width:560px;width:100%;background:white;border:1px solid #e4e0f8;border-radius:20px;padding:24px;box-shadow:0 12px 40px rgba(108,92,231,.12);">
-        <h1 style="font-size:24px;color:#1e1b3a;margin-bottom:8px;">{TITLE}</h1>
-        <p style="font-size:14px;color:#7c7a9a;line-height:1.55;">
-          {DESCRIPTION}
-        </p>
-        {
-          shouldRedirect ? (
-            <p style="margin-top:16px;color:#6c5ce7;font-weight:600;">
-              Redirigiendo a la sesión compartida...
-            </p>
-          ) : (
-            <p style="margin-top:16px;color:#e17055;font-weight:600;">
-              Esta sesión no está disponible o expiró.
-            </p>
-          )
-        }
-        <p style="margin-top:14px;font-size:13px;">
-          <a
-            href={DESTINATION}
-            style="color:#6c5ce7;text-decoration:none;font-weight:700;">
-            Abrir en la app
-          </a>
-        </p>
-      </article>
-    </main>
-  </body>
+  <body></body>
 </html>
