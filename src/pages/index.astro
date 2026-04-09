@@ -1882,9 +1882,15 @@
               >
               <button
                 class="split-option"
-                data-split="custom"
-                onclick="setSplitType('custom')"
+                data-split="exact"
+                onclick="setSplitType('exact')"
                 >Montos exactos</button
+              >
+              <button
+                class="split-option"
+                data-split="percent"
+                onclick="setSplitType('percent')"
+                >Porcentajes</button
               >
             </div>
             <div
@@ -2240,6 +2246,70 @@
       function formatMoney(value, currencyCode) {
         return `${CURRENCY_SYMBOLS[currencyCode] || '$'}${formatAmount(value)}`;
       }
+      function parseInputNumber(value) {
+        if (typeof value === 'number' && Number.isFinite(value)) return value;
+        if (typeof value !== 'string') return NaN;
+
+        const raw = value.trim();
+        if (!raw) return NaN;
+
+        const clean = raw.replace(/[^\d,.-]/g, '');
+        if (!clean) return NaN;
+
+        const lastComma = clean.lastIndexOf(',');
+        const lastDot = clean.lastIndexOf('.');
+        let normalized = clean;
+
+        if (lastComma > -1 && lastDot > -1) {
+          const decimalSep = lastComma > lastDot ? ',' : '.';
+          const groupSep = decimalSep === ',' ? '.' : ',';
+          normalized = clean
+            .replace(new RegExp(`\\${groupSep}`, 'g'), '')
+            .replace(decimalSep, '.');
+        } else if (lastComma > -1) {
+          normalized = clean.replace(/\./g, '').replace(',', '.');
+        } else {
+          normalized = clean.replace(/,/g, '');
+        }
+
+        const parsed = Number(normalized);
+        return Number.isFinite(parsed) ? parsed : NaN;
+      }
+      function toInputNumber(value) {
+        if (!Number.isFinite(value)) return '';
+        return value
+          .toFixed(2)
+          .replace(/\.00$/, '')
+          .replace(/(\.\d*[1-9])0+$/, '$1');
+      }
+      function normalizeSplitMode(mode) {
+        if (mode === 'custom') return 'exact';
+        if (
+          mode === 'equal' ||
+          mode === 'select' ||
+          mode === 'exact' ||
+          mode === 'percent'
+        )
+          return mode;
+        return 'equal';
+      }
+      function inferExpenseSplitMode(expense) {
+        const mode = normalizeSplitMode(expense?.splitMode);
+        if (expense?.splitMode) return mode;
+
+        const entries = state.participants.map(p =>
+          Number(expense?.splits?.[p] || 0),
+        );
+        const nonZero = entries.filter(v => v > 0);
+        if (!nonZero.length) return 'equal';
+
+        const first = nonZero[0];
+        const isUniform = nonZero.every(v => Math.abs(v - first) < 0.02);
+        if (isUniform && nonZero.length === state.participants.length)
+          return 'equal';
+        if (isUniform) return 'select';
+        return 'exact';
+      }
       function renderAppVersion() {
         const el = document.getElementById('app-version');
         if (!el) return;
@@ -2521,7 +2591,7 @@
           .getElementById('new-currency-code')
           .value.trim()
           .toUpperCase();
-        const rate = parseFloat(
+        const rate = parseInputNumber(
           document.getElementById('new-currency-rate').value,
         );
         if (!code || isNaN(rate) || rate <= 0) return;
@@ -2547,7 +2617,8 @@
       function updateExtraRate(code, val) {
         const c = state.extraCurrencies.find(c => c.code === code);
         if (c) {
-          c.rate = parseFloat(val) || c.rate;
+          const parsed = parseInputNumber(val);
+          if (Number.isFinite(parsed) && parsed > 0) c.rate = parsed;
           save();
         }
       }
@@ -2666,11 +2737,122 @@
 
       // ─── SPLIT ────────────────────────────────────────────────────────────────────
       function setSplitType(type) {
-        splitType = type;
+        splitType = normalizeSplitMode(type);
         document.querySelectorAll('.split-option').forEach(b => {
-          b.classList.toggle('active', b.dataset.split === type);
+          b.classList.toggle('active', b.dataset.split === splitType);
         });
         renderSplitExtra();
+      }
+
+      function autoFillLastCreateField(mode, activeName) {
+        const lastParticipant =
+          state.participants[state.participants.length - 1] || null;
+        if (!lastParticipant || activeName !== lastParticipant) return;
+
+        const total = parseInputNumber(
+          document.getElementById('exp-amount')?.value || '',
+        );
+        if (!Number.isFinite(total) || total <= 0) return;
+
+        const isPercent = mode === 'percent';
+        const expected = isPercent ? 100 : total;
+        const prefix = isPercent ? 'cp-' : 'ca-';
+
+        const values = state.participants.map(name => {
+          const input = document.getElementById(`${prefix}${name}`);
+          const raw = input?.value?.trim() || '';
+          return {
+            input,
+            raw,
+            value: parseInputNumber(raw),
+          };
+        });
+
+        const empty = values.filter(v => !v.raw);
+        if (empty.length !== 1) return;
+
+        const sumFilled = values
+          .filter(v => v.raw)
+          .reduce(
+            (acc, v) => acc + (Number.isFinite(v.value) ? v.value : 0),
+            0,
+          );
+        const remaining = Math.max(0, expected - sumFilled);
+        empty[0].input.value = toInputNumber(remaining);
+      }
+
+      function parseCreateSplits(mode, amount) {
+        if (mode === 'equal') {
+          const each = amount / state.participants.length;
+          return {
+            splits: Object.fromEntries(state.participants.map(p => [p, each])),
+            ok: true,
+          };
+        }
+
+        if (mode === 'select') {
+          const selected = state.participants.filter(
+            p => document.getElementById(`sc-${p}`)?.checked,
+          );
+          if (!selected.length) {
+            showToast('⚠️ Elegí al menos una persona');
+            return { splits: null, ok: false };
+          }
+          const each = amount / selected.length;
+          const splits = {};
+          state.participants.forEach(p => {
+            splits[p] = selected.includes(p) ? each : 0;
+          });
+          return { splits, ok: true };
+        }
+
+        if (mode === 'percent') {
+          autoFillLastCreateField(
+            'percent',
+            state.participants[state.participants.length - 1],
+          );
+          const percentages = {};
+          let totalPct = 0;
+          state.participants.forEach(p => {
+            const v = parseInputNumber(
+              document.getElementById(`cp-${p}`)?.value || '',
+            );
+            const pct = Number.isFinite(v) ? v : 0;
+            percentages[p] = pct;
+            totalPct += pct;
+          });
+          if (Math.abs(totalPct - 100) > 0.05) {
+            showToast('⚠️ Los porcentajes deben sumar 100%');
+            return { splits: null, ok: false };
+          }
+          const splits = {};
+          state.participants.forEach(p => {
+            splits[p] = (amount * percentages[p]) / 100;
+          });
+          return { splits, ok: true };
+        }
+
+        autoFillLastCreateField(
+          'exact',
+          state.participants[state.participants.length - 1],
+        );
+        const splits = {};
+        let total = 0;
+        state.participants.forEach(p => {
+          const v = parseInputNumber(
+            document.getElementById(`ca-${p}`)?.value || '',
+          );
+          const val = Number.isFinite(v) ? v : 0;
+          splits[p] = val;
+          total += val;
+        });
+        if (Math.abs(total - amount) > 0.05) {
+          alert(
+            `Los montos no suman el total.\nIngresado: ${formatAmount(total)}, Esperado: ${formatAmount(amount)}`,
+          );
+          return { splits: null, ok: false };
+        }
+        return { splits, ok: true };
       }
 
       function renderSplitExtra() {
@@ -2695,15 +2877,36 @@
             `</div>`;
         }
 
-        if (splitType === 'custom') {
+        if (splitType === 'exact') {
           el.innerHTML =
+            `<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Si dejás un solo campo vacío, se completa automáticamente para llegar al total.</div>` +
             `<div class="custom-splits-grid">` +
             state.participants
               .map(p => {
                 const color = colorFor(p);
                 return `<div class="custom-split-field" style="border-color:${color}30;">
           <label style="color:${color};">${p}</label>
-          <input type="number" id="ca-${p}" placeholder="0" step="any" inputmode="decimal" />
+          <input type="text" id="ca-${p}" placeholder="0" inputmode="decimal" oninput="autoFillLastCreateField('exact', ${JSON.stringify(p)})" onfocus="autoFillLastCreateField('exact', ${JSON.stringify(p)})" />
+        </div>`;
+              })
+              .join('') +
+            `</div>`;
+          return;
+        }
+
+        if (splitType === 'percent') {
+          el.innerHTML =
+            `<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Si dejás un solo campo vacío, se completa automáticamente para llegar a 100%.</div>` +
+            `<div class="custom-splits-grid">` +
+            state.participants
+              .map(p => {
+                const color = colorFor(p);
+                const each = state.participants.length
+                  ? 100 / state.participants.length
+                  : 0;
+                return `<div class="custom-split-field" style="border-color:${color}30;">
+          <label style="color:${color};">${p}</label>
+          <input type="text" id="cp-${p}" placeholder="0" value="${toInputNumber(each)}" inputmode="decimal" oninput="autoFillLastCreateField('percent', ${JSON.stringify(p)})" onfocus="autoFillLastCreateField('percent', ${JSON.stringify(p)})" />
         </div>`;
               })
               .join('') +
@@ -2736,7 +2939,9 @@
       }
 
       function addExpense() {
-        const amount = parseFloat(document.getElementById('exp-amount').value);
+        const amount = parseInputNumber(
+          document.getElementById('exp-amount').value,
+        );
         const desc = document.getElementById('exp-desc').value.trim() || '—';
         const amountEl = document.getElementById('exp-amount');
         if (!amount || isNaN(amount) || amount <= 0) {
@@ -2758,37 +2963,10 @@
             ? amount / currObj.rate
             : amount;
 
-        let splits = {};
-        if (splitType === 'equal') {
-          const each = amount / state.participants.length;
-          state.participants.forEach(p => (splits[p] = each));
-        } else if (splitType === 'select') {
-          const selected = state.participants.filter(
-            p => document.getElementById('sc-' + p)?.checked,
-          );
-          if (!selected.length) return;
-          const each = amount / selected.length;
-          selected.forEach(p => (splits[p] = each));
-          // others get 0
-          state.participants
-            .filter(p => !selected.includes(p))
-            .forEach(p => (splits[p] = 0));
-        } else {
-          let total = 0;
-          state.participants.forEach(p => {
-            const v = parseFloat(
-              document.getElementById('ca-' + p)?.value || 0,
-            );
-            splits[p] = v;
-            total += v;
-          });
-          if (Math.abs(total - amount) > 0.02) {
-            alert(
-              `Los montos no suman el total.\nIngresado: ${formatAmount(total)}, Esperado: ${formatAmount(amount)}`,
-            );
-            return;
-          }
-        }
+        const mode = normalizeSplitMode(splitType);
+        const splitResult = parseCreateSplits(mode, amount);
+        if (!splitResult.ok) return;
+        const splits = splitResult.splits;
 
         state.expenses.push({
           id: Date.now(),
@@ -2798,6 +2976,7 @@
           amount,
           amountInBase,
           splits,
+          splitMode: mode,
           emoji: randomEmoji(),
         });
         save();
@@ -2826,7 +3005,7 @@
       // ─── EDIT EXPENSE ─────────────────────────────────────────────────────────────
       let editingId = null;
       let editPayerSel = {}; // { expId: 'Mario' }
-      let editSplitSel = {}; // { expId: 'equal' | 'select' | 'custom' }
+      let editSplitSel = {}; // { expId: 'equal' | 'select' | 'exact' | 'percent' }
 
       function toggleEdit(id) {
         if (editingId === id) {
@@ -2835,9 +3014,14 @@
           const exp = state.expenses.find(e => e.id === id);
           editingId = id;
           editPayerSel[id] = exp.paidBy;
-          editSplitSel[id] = 'equal'; // reset to equal on open
+          editSplitSel[id] = inferExpenseSplitMode(exp);
         }
         renderExpensesList();
+        if (editingId) {
+          setTimeout(() => {
+            setEditSplit(editingId, editSplitSel[editingId]);
+          }, 0);
+        }
       }
 
       function setEditPayer(id, name) {
@@ -2854,19 +3038,20 @@
       }
 
       function setEditSplit(id, type) {
-        editSplitSel[id] = type;
+        editSplitSel[id] = normalizeSplitMode(type);
         document.querySelectorAll(`[data-esplit="${id}"]`).forEach(b => {
-          b.classList.toggle('active', b.dataset.val === type);
+          b.classList.toggle('active', b.dataset.val === editSplitSel[id]);
         });
         // Show/hide extra split options
         const extra = document.getElementById(`edit-split-extra-${id}`);
         if (!extra) return;
         const exp = state.expenses.find(e => e.id === id);
-        if (type === 'equal') {
+        const typeNorm = editSplitSel[id];
+        if (typeNorm === 'equal') {
           extra.innerHTML = '';
           return;
         }
-        if (type === 'select') {
+        if (typeNorm === 'select') {
           extra.innerHTML =
             `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">` +
             state.participants
@@ -2880,8 +3065,9 @@
               .join('') +
             `</div>`;
         }
-        if (type === 'custom') {
+        if (typeNorm === 'exact') {
           extra.innerHTML =
+            `<div style="font-size:12px;color:var(--muted);margin:8px 0 6px;">Si dejás un solo campo vacío, se completa automáticamente.</div>` +
             `<div class="custom-splits-grid" style="margin-top:8px;">` +
             state.participants
               .map(p => {
@@ -2889,7 +3075,28 @@
                 const val = roundAmount(exp.splits[p] || 0);
                 return `<div class="custom-split-field" style="border-color:${c}30;">
           <label style="color:${c};">${p}</label>
-          <input type="number" id="ec-${id}-${p}" value="${val}" step="any" inputmode="decimal"/>
+          <input type="text" id="ec-${id}-${p}" value="${toInputNumber(val)}" inputmode="decimal" oninput="autoFillLastEditField(${id}, 'exact', ${JSON.stringify(p)})" onfocus="autoFillLastEditField(${id}, 'exact', ${JSON.stringify(p)})"/>
+        </div>`;
+              })
+              .join('') +
+            `</div>`;
+          return;
+        }
+
+        if (typeNorm === 'percent') {
+          extra.innerHTML =
+            `<div style="font-size:12px;color:var(--muted);margin:8px 0 6px;">Si dejás un solo campo vacío, se completa automáticamente hasta 100%.</div>` +
+            `<div class="custom-splits-grid" style="margin-top:8px;">` +
+            state.participants
+              .map(p => {
+                const c = colorFor(p);
+                const pct =
+                  exp.amount > 0
+                    ? ((Number(exp.splits[p]) || 0) * 100) / exp.amount
+                    : 0;
+                return `<div class="custom-split-field" style="border-color:${c}30;">
+          <label style="color:${c};">${p}</label>
+          <input type="text" id="ep-${id}-${p}" value="${toInputNumber(pct)}" inputmode="decimal" oninput="autoFillLastEditField(${id}, 'percent', ${JSON.stringify(p)})" onfocus="autoFillLastEditField(${id}, 'percent', ${JSON.stringify(p)})"/>
         </div>`;
               })
               .join('') +
@@ -2897,11 +3104,48 @@
         }
       }
 
+      function autoFillLastEditField(id, mode, activeName) {
+        const exp = state.expenses.find(e => e.id === id);
+        if (!exp) return;
+
+        const lastParticipant =
+          state.participants[state.participants.length - 1] || null;
+        if (!lastParticipant || activeName !== lastParticipant) return;
+
+        const isPercent = mode === 'percent';
+        const expected = isPercent ? 100 : exp.amount;
+        const prefix = isPercent ? `ep-${id}-` : `ec-${id}-`;
+
+        const values = state.participants.map(name => {
+          const input = document.getElementById(`${prefix}${name}`);
+          const raw = input?.value?.trim() || '';
+          return {
+            input,
+            raw,
+            value: parseInputNumber(raw),
+          };
+        });
+
+        const empty = values.filter(v => !v.raw);
+        if (empty.length !== 1) return;
+
+        const sumFilled = values
+          .filter(v => v.raw)
+          .reduce(
+            (acc, v) => acc + (Number.isFinite(v.value) ? v.value : 0),
+            0,
+          );
+        const remaining = Math.max(0, expected - sumFilled);
+        empty[0].input.value = toInputNumber(remaining);
+      }
+
       function saveExpenseEdit(id) {
         const exp = state.expenses.find(e => e.id === id);
         if (!exp) return;
         exp.paidBy = editPayerSel[id] || exp.paidBy;
-        const st = editSplitSel[id] || 'equal';
+        const st = normalizeSplitMode(
+          editSplitSel[id] || inferExpenseSplitMode(exp),
+        );
         if (st === 'equal') {
           const each = exp.amount / state.participants.length;
           state.participants.forEach(p => (exp.splits[p] = each));
@@ -2909,19 +3153,57 @@
           const sel = state.participants.filter(
             p => document.getElementById(`es-${id}-${p}`)?.checked,
           );
-          if (sel.length) {
-            const each = exp.amount / sel.length;
-            state.participants.forEach(
-              p => (exp.splits[p] = sel.includes(p) ? each : 0),
-            );
+          if (!sel.length) {
+            showToast('⚠️ Elegí al menos una persona');
+            return;
           }
-        } else {
+          const each = exp.amount / sel.length;
+          state.participants.forEach(
+            p => (exp.splits[p] = sel.includes(p) ? each : 0),
+          );
+        } else if (st === 'percent') {
+          autoFillLastEditField(
+            id,
+            'percent',
+            state.participants[state.participants.length - 1],
+          );
+          const percentages = {};
+          let totalPct = 0;
           state.participants.forEach(p => {
-            exp.splits[p] = parseFloat(
-              document.getElementById(`ec-${id}-${p}`)?.value || 0,
+            const v = parseInputNumber(
+              document.getElementById(`ep-${id}-${p}`)?.value || '',
             );
+            const pct = Number.isFinite(v) ? v : 0;
+            percentages[p] = pct;
+            totalPct += pct;
           });
+          if (Math.abs(totalPct - 100) > 0.05) {
+            showToast('⚠️ Los porcentajes deben sumar 100%');
+            return;
+          }
+          state.participants.forEach(p => {
+            exp.splits[p] = (exp.amount * percentages[p]) / 100;
+          });
+        } else {
+          autoFillLastEditField(
+            id,
+            'exact',
+            state.participants[state.participants.length - 1],
+          );
+          let totalExact = 0;
+          state.participants.forEach(p => {
+            const v = parseInputNumber(
+              document.getElementById(`ec-${id}-${p}`)?.value || '',
+            );
+            exp.splits[p] = Number.isFinite(v) ? v : 0;
+            totalExact += exp.splits[p];
+          });
+          if (Math.abs(totalExact - exp.amount) > 0.05) {
+            showToast('⚠️ Los montos exactos no suman el total del gasto');
+            return;
+          }
         }
+        exp.splitMode = st;
         save();
         editingId = null;
         renderExpensesList();
@@ -2954,6 +3236,7 @@
               .map(([p]) => p);
             const sameBase = e.currency === state.baseCurrency;
             const isEditing = editingId === e.id;
+            const currentSplit = inferExpenseSplitMode(e);
             const delay = `animation-delay:${idx * 40}ms`;
 
             // Edit panel
@@ -2977,9 +3260,10 @@
         </div>
         <div class="edit-label">Forma de dividir</div>
         <div class="split-toggle">
-          <button class="split-option active" data-esplit="${e.id}" data-val="equal" onclick="setEditSplit(${e.id},'equal')">Igual entre todos</button>
-          <button class="split-option" data-esplit="${e.id}" data-val="select" onclick="setEditSplit(${e.id},'select')">Solo algunos</button>
-          <button class="split-option" data-esplit="${e.id}" data-val="custom" onclick="setEditSplit(${e.id},'custom')">Montos exactos</button>
+          <button class="split-option ${currentSplit === 'equal' ? 'active' : ''}" data-esplit="${e.id}" data-val="equal" onclick="setEditSplit(${e.id},'equal')">Igual entre todos</button>
+          <button class="split-option ${currentSplit === 'select' ? 'active' : ''}" data-esplit="${e.id}" data-val="select" onclick="setEditSplit(${e.id},'select')">Solo algunos</button>
+          <button class="split-option ${currentSplit === 'exact' ? 'active' : ''}" data-esplit="${e.id}" data-val="exact" onclick="setEditSplit(${e.id},'exact')">Montos exactos</button>
+          <button class="split-option ${currentSplit === 'percent' ? 'active' : ''}" data-esplit="${e.id}" data-val="percent" onclick="setEditSplit(${e.id},'percent')">Porcentajes</button>
         </div>
         <div id="edit-split-extra-${e.id}"></div>
         <div class="edit-actions">
