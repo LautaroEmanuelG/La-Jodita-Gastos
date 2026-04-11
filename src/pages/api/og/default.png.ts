@@ -107,7 +107,7 @@ const buildDefaultImage = () => {
               padding: '10px 18px',
             },
           },
-          'Abrí La Jodita y saldá ahora',
+          'Agarrate',
         ),
       ),
     ),

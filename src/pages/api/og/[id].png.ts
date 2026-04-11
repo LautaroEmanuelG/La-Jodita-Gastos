@@ -70,6 +70,21 @@ const getEmojiTrio = (seedText: string): string[] => {
   );
 };
 
+const parseSnapshot = (value: unknown): Record<string, unknown> | null => {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+  if (typeof value === 'object') {
+    return value as Record<string, unknown>;
+  }
+  return null;
+};
+
 const buildImage = (input: { amountLabel: string; emojis: string[] }) => {
   const { amountLabel, emojis } = input;
   const emojiInline = emojis.join(' ');
@@ -171,7 +186,7 @@ const buildImage = (input: { amountLabel: string; emojis: string[] }) => {
               padding: '10px 18px',
             },
           },
-          'Abrí La Jodita y saldá ahora',
+          'Agarrate',
         ),
       ),
     ),
@@ -191,9 +206,10 @@ export const GET: APIRoute = async ({ params }) => {
 
   try {
     const redis = await getRedisClient();
-    const raw = await redis.get<string>(`s:${id}`);
+    const raw = await redis.get<unknown>(`s:${id}`);
+    const parsed = parseSnapshot(raw);
 
-    if (!raw) {
+    if (!parsed) {
       const fallbackImage = buildImage({
         amountLabel: '000...',
         emojis: getEmojiTrio(id),
@@ -207,7 +223,6 @@ export const GET: APIRoute = async ({ params }) => {
       return fallbackImage;
     }
 
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
     const expenses = Array.isArray(parsed.expenses) ? parsed.expenses : [];
     const total = Math.round(sumExpensesBase(expenses));
     const tensionAmount = getTensionAmount(total);

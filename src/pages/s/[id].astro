@@ -70,6 +70,21 @@ const getEmojiTrio = (seedText: string): string => {
   return trio.join(' ');
 };
 
+const parseSnapshot = (value: unknown): Record<string, unknown> | null => {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+  if (typeof value === 'object') {
+    return value as Record<string, unknown>;
+  }
+  return null;
+};
+
 let totalInBase = 0;
 let emojiTrio = '💸 🍻 🧉';
 let shouldRedirect = false;
@@ -78,10 +93,10 @@ if (IS_VALID_SHARE_ID) {
   emojiTrio = getEmojiTrio(SHARE_ID);
   try {
     const redis = await getRedisClient();
-    const raw = await redis.get<string>(`s:${SHARE_ID}`);
+    const raw = await redis.get<unknown>(`s:${SHARE_ID}`);
+    const parsed = parseSnapshot(raw);
 
-    if (raw) {
-      const parsed = JSON.parse(raw) as Record<string, unknown>;
+    if (parsed) {
       const expenses = Array.isArray(parsed.expenses) ? parsed.expenses : [];
       totalInBase = sumExpensesBase(expenses);
       shouldRedirect = true;
@@ -95,9 +110,7 @@ const TOTAL_INT = Math.round(totalInBase);
 const TENSION_AMOUNT = getTensionAmount(TOTAL_INT);
 const SHARE_AMOUNT = shouldRedirect ? TENSION_AMOUNT : FALLBACK_AMOUNT;
 const TITLE = `La Jodita | ${SHARE_AMOUNT} :$`;
-const OG_DESCRIPTION = shouldRedirect
-  ? 'Divide gastos y saldá cuentas entre amigos en segundos.'
-  : 'Divide gastos y saldá cuentas entre amigos en segundos.';
+const OG_DESCRIPTION = 'Pongan la tarasca, cierren cuentas y sigan la jodita.';
 const OG_IMAGE =
   IS_VALID_SHARE_ID && SHARE_ID
     ? `${Astro.url.origin}/api/og/${SHARE_ID}.png`
