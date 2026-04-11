@@ -186,7 +186,7 @@ const buildImage = (input: { amountLabel: string; emojis: string[] }) => {
               padding: '10px 18px',
             },
           },
-          'Agarrate',
+          'Abri la jodita y agarrate',
         ),
       ),
     ),
