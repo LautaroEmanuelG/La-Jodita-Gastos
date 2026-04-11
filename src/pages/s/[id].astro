@@ -6,8 +6,7 @@ import { getRedisClient } from '../../lib/redis';
 const SHARE_ID = Astro.params.id ?? '';
 const IS_VALID_SHARE_ID = /^[a-z0-9]{4,10}$/.test(SHARE_ID);
 
-const FALLBACK_TITLE =
-  'La Jodita | Divide gastos entre amigos sin drama ni cuentas raras';
+const FALLBACK_AMOUNT = '150...';
 const APP_EMOJI_POOL = ['💸', '🍻', '🧉', '🎉', '😎', '🍕', '🚕', '🏝️'];
 
 const parseMoneyValue = (value: unknown): number => {
@@ -94,14 +93,13 @@ if (IS_VALID_SHARE_ID) {
 
 const TOTAL_INT = Math.round(totalInBase);
 const TENSION_AMOUNT = getTensionAmount(TOTAL_INT);
-const TITLE = shouldRedirect
-  ? `La Jodita | Cuenta compartida: ${TENSION_AMOUNT} :$ ${emojiTrio}`
-  : FALLBACK_TITLE;
+const SHARE_AMOUNT = shouldRedirect ? TENSION_AMOUNT : FALLBACK_AMOUNT;
+const TITLE = `La Jodita | ${SHARE_AMOUNT} :$`;
 const OG_DESCRIPTION = shouldRedirect
-  ? `Se registraron gastos por ${TENSION_AMOUNT}. Entra para ver quién pagó, quién debe y cómo cerrar la cuenta en minutos sin discusiones.`
-  : 'Organiza gastos de viajes, salidas y asados con un resumen claro para todo el grupo. Haz clic y mira cómo se divide la cuenta.';
+  ? 'Divide gastos y saldá cuentas entre amigos en segundos.'
+  : 'Divide gastos y saldá cuentas entre amigos en segundos.';
 const OG_IMAGE =
-  shouldRedirect && IS_VALID_SHARE_ID && SHARE_ID
+  IS_VALID_SHARE_ID && SHARE_ID
     ? `${Astro.url.origin}/api/og/${SHARE_ID}.png`
     : `${Astro.url.origin}/api/og/default.png`;
 const DESTINATION = `/?s=${encodeURIComponent(SHARE_ID)}`;

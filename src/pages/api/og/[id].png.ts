@@ -157,6 +157,22 @@ const buildImage = (input: { amountLabel: string; emojis: string[] }) => {
           },
           emojiInline,
         ),
+        h(
+          'div',
+          {
+            style: {
+              fontSize: '34px',
+              fontWeight: 800,
+              color: '#6c5ce7',
+              letterSpacing: '-0.6px',
+              background: '#ece9fd',
+              border: '2px solid #d6cffb',
+              borderRadius: '16px',
+              padding: '10px 18px',
+            },
+          },
+          'Abrí La Jodita y saldá ahora',
+        ),
       ),
     ),
     {
