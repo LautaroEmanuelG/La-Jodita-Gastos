@@ -70,12 +70,8 @@ const getEmojiTrio = (seedText: string): string[] => {
   );
 };
 
-const buildImage = (input: {
-  amountLabel: string;
-  emojis: string[];
-  iconUrl: string;
-}) => {
-  const { amountLabel, emojis, iconUrl } = input;
+const buildImage = (input: { amountLabel: string; emojis: string[] }) => {
+  const { amountLabel, emojis } = input;
   const emojiInline = emojis.join(' ');
 
   return new ImageResponse(
@@ -86,98 +82,80 @@ const buildImage = (input: {
           width: '100%',
           height: '100%',
           display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           position: 'relative',
           background:
-            'radial-gradient(circle at 15% 20%, #ffffff 0%, #f1eeff 40%, #e9e3ff 100%)',
+            'linear-gradient(135deg, #f0eeff 0%, #ece9fd 52%, #ddd7ff 100%)',
           color: '#1e1b3a',
           fontFamily:
             'ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Inter, sans-serif',
-          padding: '52px',
           overflow: 'hidden',
         },
       },
       h('div', {
         style: {
+          background:
+            'radial-gradient(circle at 10% 10%, rgba(108,92,231,0.1) 0%, rgba(108,92,231,0) 40%), radial-gradient(circle at 90% 90%, rgba(162,155,254,0.15) 0%, rgba(162,155,254,0) 40%)',
+          inset: '0',
           position: 'absolute',
-          top: '-120px',
-          right: '-100px',
-          width: '420px',
-          height: '420px',
-          borderRadius: '50%',
-          background: 'rgba(108, 92, 231, 0.18)',
-        },
-      }),
-      h('div', {
-        style: {
-          position: 'absolute',
-          bottom: '-140px',
-          left: '-120px',
-          width: '380px',
-          height: '380px',
-          borderRadius: '50%',
-          background: 'rgba(162, 155, 254, 0.22)',
         },
       }),
       h(
         'div',
         {
           style: {
-            zIndex: 2,
-            width: '100%',
-            borderRadius: '34px',
+            fontSize: '430px',
+            position: 'absolute',
+            right: '-20px',
+            transform: 'translateY(14%)',
+            opacity: 0.22,
+            filter: 'saturate(0.9)',
+          },
+        },
+        emojis[0] ?? '💸',
+      ),
+      h(
+        'div',
+        {
+          style: {
+            background: 'rgba(255,255,255,0.9)',
             border: '2px solid #e4e0f8',
-            background: 'rgba(255,255,255,0.92)',
-            boxShadow: '0 18px 42px rgba(108,92,231,0.18)',
+            borderRadius: '34px',
+            boxShadow: '0 18px 44px rgba(108,92,231,0.2)',
             display: 'flex',
             flexDirection: 'column',
-            padding: '36px 42px',
-            justifyContent: 'center',
-            gap: '28px',
+            textAlign: 'center',
+            padding: '56px 64px',
+            position: 'relative',
+            width: '78%',
+            alignItems: 'center',
+            gap: '24px',
           },
         },
         h(
           'div',
-          { style: { display: 'flex', alignItems: 'center', gap: '16px' } },
-          h('img', {
-            src: iconUrl,
-            width: '72',
-            height: '72',
-            style: { borderRadius: '20px', border: '2px solid #d6cffb' },
-          }),
-          h(
-            'div',
-            {
-              style: {
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2px',
-              },
+          {
+            style: {
+              fontSize: '112px',
+              fontWeight: 900,
+              letterSpacing: '-3px',
+              color: '#6c5ce7',
             },
-            h(
-              'div',
-              {
-                style: {
-                  fontSize: '54px',
-                  fontWeight: 700,
-                  color: '#1e1b3a',
-                  letterSpacing: '-1px',
-                },
-              },
-              'La jodita',
-            ),
-          ),
+          },
+          `${amountLabel} :$`,
         ),
         h(
           'div',
           {
             style: {
-              fontSize: '62px',
-              color: '#5a4fcc',
+              fontSize: '66px',
               fontWeight: 800,
+              color: '#1e1b3a',
               letterSpacing: '-1px',
             },
           },
-          `${amountLabel} :$ ${emojiInline}`,
+          emojiInline,
         ),
       ),
     ),
@@ -188,7 +166,7 @@ const buildImage = (input: {
   );
 };
 
-export const GET: APIRoute = async ({ params, url }) => {
+export const GET: APIRoute = async ({ params }) => {
   const id = params.id ?? '';
 
   if (!VALID_ID_REGEX.test(id)) {
@@ -200,7 +178,17 @@ export const GET: APIRoute = async ({ params, url }) => {
     const raw = await redis.get<string>(`s:${id}`);
 
     if (!raw) {
-      return new Response('Not found', { status: 404 });
+      const fallbackImage = buildImage({
+        amountLabel: '000...',
+        emojis: getEmojiTrio(id),
+      });
+      fallbackImage.headers.set(
+        'Cache-Control',
+        'public, max-age=300, s-maxage=3600, immutable',
+      );
+      fallbackImage.headers.set('Content-Type', 'image/png');
+      fallbackImage.headers.set('CDN-Cache-Control', 'max-age=3600');
+      return fallbackImage;
     }
 
     const parsed = JSON.parse(raw) as Record<string, unknown>;
@@ -208,12 +196,10 @@ export const GET: APIRoute = async ({ params, url }) => {
     const total = Math.round(sumExpensesBase(expenses));
     const tensionAmount = getTensionAmount(total);
     const emojis = getEmojiTrio(id);
-    const iconUrl = `${url.origin}/icon/la-jodita.svg`;
 
     const image = buildImage({
       amountLabel: tensionAmount,
       emojis,
-      iconUrl,
     });
 
     // Optimized cache headers for social platforms
@@ -229,6 +215,16 @@ export const GET: APIRoute = async ({ params, url }) => {
     return image;
   } catch (error) {
     console.error('[GET /api/og/:id.png]', error);
-    return new Response('Error', { status: 500 });
+    const fallbackImage = buildImage({
+      amountLabel: '000...',
+      emojis: getEmojiTrio(id),
+    });
+    fallbackImage.headers.set(
+      'Cache-Control',
+      'public, max-age=120, s-maxage=1800, immutable',
+    );
+    fallbackImage.headers.set('Content-Type', 'image/png');
+    fallbackImage.headers.set('CDN-Cache-Control', 'max-age=1800');
+    return fallbackImage;
   }
 };
