@@ -2,7 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { randomBytes } from 'node:crypto';
-import { getRedisClient, getSessionTtlSeconds } from '../../../lib/redis';
+import { getRedisClient } from '../../../lib/redis';
 
 const MAX_BODY_BYTES = 200_000;
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -34,13 +34,10 @@ export const POST: APIRoute = async ({ request }) => {
 
     const redis = await getRedisClient();
 
-    // NX evita pisar una sesión existente si hubiera colisión de ID
+    // Sin TTL: los links no vencen. NX evita pisar una sesión existente si hubiera colisión de ID
     for (let attempt = 0; attempt < 3; attempt++) {
       const id = shortId();
-      const ok = await redis.set(`s:${id}`, text, {
-        ex: getSessionTtlSeconds(),
-        nx: true,
-      });
+      const ok = await redis.set(`s:${id}`, text, { nx: true });
       if (ok) return json({ id });
     }
     return json({ error: 'No se pudo generar un ID único' }, 500);

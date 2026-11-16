@@ -2457,7 +2457,7 @@
       const APP_VERSION = {
         major: 1,
         minor: 1,
-        patch: 0,
+        patch: 1,
       };
       const APP_VERSION_LABEL = `v${APP_VERSION.major}.${APP_VERSION.minor}`;
 
@@ -4007,11 +4007,10 @@
 
       // ─── SHARE ────────────────────────────────────────────────────────────────────
       // Estrategia híbrida:
-      //  1. Link corto /s/{id} guardado en Redis (preview OG lindo en WhatsApp, expira 30 días).
+      //  1. Link corto /s/{id} guardado en Redis (preview OG lindo en WhatsApp, no vence).
       //  2. Si el servidor falla, link autocontenido /#d=... con la sesión comprimida
-      //     dentro de la URL: no depende de backend y nunca expira.
+      //     dentro de la URL: no depende de backend.
       let _isSharedView = false;
-      let _sharedLinkExpires = true;
 
       function _fallbackCopy(text) {
         const ta = document.createElement('textarea');
@@ -4101,15 +4100,15 @@
         }
       }
 
-      // Devuelve { url, shareId, expires }
+      // Devuelve { url, shareId }
       async function _buildShareLink(snapshot) {
         try {
           const id = await _publishSnapshot(snapshot);
-          return { url: `${location.origin}/s/${id}`, shareId: id, expires: true };
+          return { url: `${location.origin}/s/${id}`, shareId: id };
         } catch (err) {
           console.warn('[share] servidor no disponible, uso link autocontenido', err);
           const token = await encodeSnapshot(snapshot);
-          return { url: `${location.origin}/#d=${token}`, shareId: null, expires: false };
+          return { url: `${location.origin}/#d=${token}`, shareId: null };
         }
       }
 
@@ -4354,13 +4353,13 @@
         history.replaceState({}, '', location.pathname);
 
         if (token) {
-          return { snapshot: await decodeSnapshot(token), shareId: null, expires: false };
+          return { snapshot: await decodeSnapshot(token), shareId: null };
         }
         if (!/^[a-z0-9]{4,12}$/.test(sid)) throw new Error('ID inválido');
         const res = await fetch(`/api/s/${sid}`);
         if (res.status === 404) return { notFound: true };
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return { snapshot: await res.json(), shareId: sid, expires: true };
+        return { snapshot: await res.json(), shareId: sid };
       }
 
       async function checkSharedUrl() {
@@ -4374,7 +4373,7 @@
         }
         if (!result) return;
         if (result.notFound) {
-          showToast('⚠️ Sesión no encontrada o expirada (30 días)');
+          showToast('⚠️ Sesión no encontrada');
           return;
         }
         const shared = sanitizeSnapshot(result.snapshot);
@@ -4389,7 +4388,6 @@
         }
 
         _isSharedView = true;
-        _sharedLinkExpires = result.expires;
         state = shared;
         save();
         const isOwner = shared._shareMeta?.ownerId === CURRENT_USER_ID;
@@ -4411,7 +4409,7 @@
         banner.innerHTML = `<div class="shared-banner">
     <div style="flex:1;">
       <div class="shared-banner-text">👁️ Vista compartida: <strong>${esc(tripName || 'Sin nombre')}</strong></div>
-      <div class="shared-banner-sub">${_sharedLinkExpires ? 'El link expira en 30 días · ya quedó guardada en tu historial' : 'Guardada en tu historial'}</div>
+      <div class="shared-banner-sub">Guardada en tu historial</div>
     </div>
     <button class="btn btn-ghost btn-sm" style="background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.3);color:white;" onclick="startNewSession()">+ Nueva sesión</button>
     <button style="color:white;background:rgba(255,255,255,0.15);border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;" onclick="dismissSharedBanner()">✕</button>

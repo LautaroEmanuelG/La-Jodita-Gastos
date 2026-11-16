@@ -1,7 +1,5 @@
 import type { Redis } from '@upstash/redis';
 
-const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
-
 const getRedisEnv = () => {
   const url = process.env.UPSTASH_REDIS_REST_URL?.trim() ?? '';
   const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim() ?? '';
@@ -21,5 +19,3 @@ export const getRedisClient = async (): Promise<Redis> => {
 
   return new Redis({ url, token });
 };
-
-export const getSessionTtlSeconds = () => SESSION_TTL_SECONDS;

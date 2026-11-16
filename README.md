@@ -98,7 +98,7 @@ Astro 5      Framework estático (SSG)
 Vanilla JS   Lógica de app en <script is:inline>
 CSS puro     Sin frameworks de UI — is:global para elementos dinámicos
 Astro API     Endpoints `/api/s` para publicar/cargar sesiones
-Upstash Redis Persistencia temporal de sesiones compartidas (TTL 30 días)
+Upstash Redis Persistencia de sesiones compartidas (sin vencimiento)
 localStorage  Persistencia local para historial del navegador
 ```
 

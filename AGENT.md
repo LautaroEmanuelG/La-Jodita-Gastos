@@ -20,7 +20,7 @@ Mantener y evolucionar La Jodita sin romper:
 - App de archivo único en src/pages/index.astro
 - Toda la UI y lógica vive en HTML + CSS global + JS inline
 - API de sesiones en src/pages/api/s
-- Redis para snapshots compartidos con expiración
+- Redis para snapshots compartidos (sin vencimiento)
 
 ---
 

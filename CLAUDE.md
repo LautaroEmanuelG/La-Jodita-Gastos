@@ -56,7 +56,7 @@ Regla crítica: siempre ejecutar save() después de mutar state.
 - Gastos multi-moneda con conversión a moneda base
 - Liquidación automática por compensación greedy
 - Historial local de sesiones (máximo 10)
-- Compartir sesiones vía API + Redis (TTL) con fallback a link autocontenido `/#d=<v>.<base64url>` (deflate-raw) si el servidor falla
+- Compartir sesiones vía API + Redis (sin vencimiento) con fallback a link autocontenido `/#d=<v>.<base64url>` (deflate-raw) si el servidor falla
 - Compartir resumen como imagen PNG (canvas) → portapapeles, share sheet nativo o descarga
 - Datos de usuario en innerHTML siempre con `esc()`; argumentos en handlers inline con `jsArg()`; snapshots externos pasan por `sanitizeSnapshot()`
 - Abrir un link compartido resguarda la sesión local en curso en el historial antes de reemplazarla
