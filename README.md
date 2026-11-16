@@ -3,7 +3,7 @@
 > Dividí gastos entre amigos de forma simple, rápida y visual.
 > Soporta múltiples monedas y calcula automáticamente quién le debe a quién.
 
-![Astro](https://img.shields.io/badge/Astro-4.x-BC52EE?style=flat-square&logo=astro)
+![Astro](https://img.shields.io/badge/Astro-5.x-BC52EE?style=flat-square&logo=astro)
 ![Vanilla JS](https://img.shields.io/badge/Vanilla_JS-ES6+-F7DF1E?style=flat-square&logo=javascript)
 ![CSS](https://img.shields.io/badge/CSS-Pure-1572B6?style=flat-square&logo=css3)
 ![Upstash Redis](https://img.shields.io/badge/Redis-Upstash-00E9A3?style=flat-square&logo=redis)
@@ -94,7 +94,7 @@ Ejemplo: base `ARS`, agregar `USD` con tasa `0.00068` (1 ARS = 0.00068 USD).
 ## 🏗️ Stack técnico
 
 ```text
-Astro 4      Framework estático (SSG)
+Astro 5      Framework estático (SSG)
 Vanilla JS   Lógica de app en <script is:inline>
 CSS puro     Sin frameworks de UI — is:global para elementos dinámicos
 Astro API     Endpoints `/api/s` para publicar/cargar sesiones

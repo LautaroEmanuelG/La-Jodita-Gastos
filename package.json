@@ -8,14 +8,14 @@
   "scripts": {
     "dev": "astro dev",
     "dev:bitrix": "tsx scripts/dev-bitrix.ts",
-    "build": "astro build && node scripts/fix-vercel-runtime.mjs",
+    "build": "astro build",
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/vercel": "^7.8.2",
+    "@astrojs/vercel": "^9.0.5",
     "@upstash/redis": "^1.37.0",
     "@vercel/og": "^0.11.1",
-    "astro": "^4.16.18",
+    "astro": "^5.18.2",
     "preact": "^10.29.1"
   },
   "devDependencies": {
