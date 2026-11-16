@@ -1,15 +1,26 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+import { randomBytes } from 'node:crypto';
 import { getRedisClient, getSessionTtlSeconds } from '../../../lib/redis';
 
+const MAX_BODY_BYTES = 200_000;
+const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
+const ID_LENGTH = 8; // 36^8 ≈ 2.8e12 combinaciones
+
 const shortId = () => {
-  return Math.random().toString(36).slice(2, 8); // ~6 chars base36
+  const bytes = randomBytes(ID_LENGTH);
+  let id = '';
+  for (const b of bytes) id += ID_ALPHABET[b % ID_ALPHABET.length];
+  return id;
 };
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const text = await request.text();
+    if (text.length > MAX_BODY_BYTES) {
+      return json({ error: 'Sesión demasiado grande' }, 413);
+    }
     let body: unknown;
     try {
       body = JSON.parse(text);
@@ -17,21 +28,31 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: 'JSON inválido' }, 400);
     }
     const s = body as Record<string, unknown>;
-    if (!Array.isArray(s.participants) || !Array.isArray(s.expenses)) {
+    if (!s || !Array.isArray(s.participants) || !Array.isArray(s.expenses)) {
       return json({ error: 'Datos inválidos' }, 400);
     }
 
     const redis = await getRedisClient();
 
-    const id = shortId();
-    await redis.set(`s:${id}`, text, { ex: getSessionTtlSeconds() });
-
-    return json({ id });
+    // NX evita pisar una sesión existente si hubiera colisión de ID
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const id = shortId();
+      const ok = await redis.set(`s:${id}`, text, {
+        ex: getSessionTtlSeconds(),
+        nx: true,
+      });
+      if (ok) return json({ id });
+    }
+    return json({ error: 'No se pudo generar un ID único' }, 500);
   } catch (err) {
     console.error('[POST /api/s]', err);
     const message = err instanceof Error ? err.message : String(err);
-    const status = message.includes('UPSTASH_REDIS_REST_') ? 503 : 500;
-    return json({ error: message }, status);
+    const unavailable =
+      message.includes('UPSTASH_REDIS_REST_') || message.includes('fetch failed');
+    return json(
+      { error: unavailable ? 'Almacenamiento no disponible' : 'Error interno' },
+      unavailable ? 503 : 500,
+    );
   }
 };
 

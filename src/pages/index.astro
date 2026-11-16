@@ -2181,7 +2181,7 @@
           <div class="save-bar-info">
             <div class="title">🔗 Guardar y compartir</div>
             <div class="sub">
-              Se guarda en historial local y genera un link para compartir
+              Copiá un link para que vean la sesión o una imagen con el resumen
             </div>
           </div>
           <div class="save-bar-actions">
@@ -2205,6 +2205,12 @@
                 ></path>
               </svg>
               Compartir
+            </button>
+            <button
+              class="btn btn-ghost btn-sm"
+              id="btn-imagen"
+              onclick="shareAsImage()">
+              🖼️ Imagen
             </button>
           </div>
         </div>
@@ -2450,7 +2456,7 @@
       const USER_KEY = 'divisor-user-v1';
       const APP_VERSION = {
         major: 1,
-        minor: 0,
+        minor: 1,
         patch: 0,
       };
       const APP_VERSION_LABEL = `v${APP_VERSION.major}.${APP_VERSION.minor}`;
@@ -2463,6 +2469,73 @@
         return created;
       }
       const CURRENT_USER_ID = getOrCreateUserId();
+
+      // ─── SEGURIDAD: escape de datos de usuario en innerHTML ─────────────────────
+      // Los nombres/descripciones pueden venir de un link compartido (input externo).
+      function esc(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+      // Argumento JS seguro dentro de un atributo HTML con comillas dobles (onclick="fn(${jsArg(x)})")
+      function jsArg(value) {
+        return esc(JSON.stringify(String(value ?? '')));
+      }
+
+      // Normaliza un snapshot externo (link compartido) a la forma esperada de state
+      function sanitizeSnapshot(raw) {
+        if (!raw || typeof raw !== 'object') return null;
+        if (!Array.isArray(raw.participants) || !Array.isArray(raw.expenses))
+          return null;
+        const str = (v, max = 80) => String(v ?? '').slice(0, max);
+        const num = v => (Number.isFinite(Number(v)) ? Number(v) : 0);
+        const participants = [
+          ...new Set(raw.participants.map(p => str(p, 40).trim()).filter(Boolean)),
+        ];
+        const currency = v => str(v, 5).toUpperCase().replace(/[^A-Z]/g, '') || 'ARS';
+        const expenses = raw.expenses
+          .filter(e => e && typeof e === 'object')
+          .map((e, idx) => {
+            const splits = {};
+            if (e.splits && typeof e.splits === 'object') {
+              Object.entries(e.splits).forEach(([k, v]) => {
+                splits[str(k, 40)] = num(v);
+              });
+            }
+            return {
+              id: Number.isSafeInteger(Number(e.id)) ? Number(e.id) : Date.now() + idx,
+              description: str(e.description, 120),
+              paidBy: str(e.paidBy, 40),
+              currency: currency(e.currency),
+              amount: num(e.amount),
+              amountInBase: num(e.amountInBase),
+              splits,
+              emoji: str(e.emoji, 8) || '🧾',
+              ...(e.splitMode ? { splitMode: str(e.splitMode, 10) } : {}),
+            };
+          });
+        const snapshot = {
+          tripName: str(raw.tripName, 60),
+          participants,
+          baseCurrency: currency(raw.baseCurrency),
+          extraCurrencies: Array.isArray(raw.extraCurrencies)
+            ? raw.extraCurrencies
+                .filter(c => c && typeof c === 'object')
+                .map(c => ({ code: currency(c.code), rate: num(c.rate) }))
+            : [],
+          expenses,
+        };
+        if (raw._shareMeta && typeof raw._shareMeta === 'object') {
+          snapshot._shareMeta = {
+            ownerId: str(raw._shareMeta.ownerId, 40),
+            sharedAt: str(raw._shareMeta.sharedAt, 40),
+          };
+        }
+        return snapshot;
+      }
 
       function roundAmount(value) {
         const num = Number(value);
@@ -2588,7 +2661,8 @@
         }
         if (n === 4) {
           renderAltCurrencySection();
-          document.querySelector('.save-bar').style.display = _isSharedView
+          // En vista compartida solo se oculta el re-publicar; la imagen sigue disponible
+          document.getElementById('btn-compartir').style.display = _isSharedView
             ? 'none'
             : '';
         }
@@ -2728,8 +2802,8 @@
                 const desc = e.description || '—';
                 return `<div class="confirm-expense-item">
                   <div class="confirm-expense-main">
-                    <div class="confirm-expense-desc">${e.emoji || '🧾'} ${desc}</div>
-                    <div class="confirm-expense-meta">${e.paidBy} · ${amountLabel}</div>
+                    <div class="confirm-expense-desc">${esc(e.emoji || '🧾')} ${esc(desc)}</div>
+                    <div class="confirm-expense-meta">${esc(e.paidBy)} · ${amountLabel}</div>
                   </div>
                   <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="removeRelatedExpense(${e.id})">Eliminar</button>
                 </div>`;
@@ -2781,8 +2855,8 @@
             const color = colorFor(p);
             return `<span class="chip" style="background:${color}18; color:${color};">
       <span class="chip-avatar" style="background:${color};">${initials(p)}</span>
-      <span class="chip-name">${p}</span>
-      <button class="chip-remove" onclick='removeParticipant(${JSON.stringify(p)})' style="color:${color}80;">
+      <span class="chip-name">${esc(p)}</span>
+      <button class="chip-remove" onclick="removeParticipant(${jsArg(p)})" style="color:${color}80;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
@@ -2944,11 +3018,11 @@
           .map(p => {
             const color = colorFor(p);
             const sel = selectedPayer === p;
-            return `<button class="payer-btn ${sel ? 'selected' : ''}" onclick="selectPayer('${p}')"
-      data-name="${p}" data-color="${color}" id="payer-btn-${p}"
+            return `<button class="payer-btn ${sel ? 'selected' : ''}" onclick="selectPayer(${jsArg(p)})"
+      data-name="${esc(p)}" data-color="${color}" id="payer-btn-${esc(p)}"
       style="${sel ? `border-color:${color};background:${color}18;color:${color};` : ''}">
       <div class="payer-avatar" style="background:${color}; opacity:${sel ? 1 : 0.55};">${initials(p)}</div>
-      ${p}
+      ${esc(p)}
     </button>`;
           })
           .join('');
@@ -3103,8 +3177,8 @@
               .map(p => {
                 const color = colorFor(p);
                 return `<label style="display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 12px; border-radius:100px; border:1.5px solid ${color}40; background:${color}10; font-size:13px; font-weight:600; color:${color};">
-          <input type="checkbox" id="sc-${p}" checked style="width:auto; accent-color:${color};" />
-          ${p}
+          <input type="checkbox" id="sc-${esc(p)}" checked style="width:auto; accent-color:${color};" />
+          ${esc(p)}
         </label>`;
               })
               .join('') +
@@ -3119,8 +3193,8 @@
               .map(p => {
                 const color = colorFor(p);
                 return `<div class="custom-split-field" style="border-color:${color}30;">
-          <label style="color:${color};">${p}</label>
-          <input type="text" id="ca-${p}" placeholder="0" inputmode="decimal" oninput="autoFillLastCreateField('exact', ${JSON.stringify(p)})" onfocus="autoFillLastCreateField('exact', ${JSON.stringify(p)})" />
+          <label style="color:${color};">${esc(p)}</label>
+          <input type="text" id="ca-${esc(p)}" placeholder="0" inputmode="decimal" oninput="autoFillLastCreateField('exact', ${jsArg(p)})" onfocus="autoFillLastCreateField('exact', ${jsArg(p)})" />
         </div>`;
               })
               .join('') +
@@ -3139,8 +3213,8 @@
                   ? 100 / state.participants.length
                   : 0;
                 return `<div class="custom-split-field" style="border-color:${color}30;">
-          <label style="color:${color};">${p}</label>
-          <input type="text" id="cp-${p}" placeholder="0" value="${toInputNumber(each)}" inputmode="decimal" oninput="autoFillLastCreateField('percent', ${JSON.stringify(p)})" onfocus="autoFillLastCreateField('percent', ${JSON.stringify(p)})" />
+          <label style="color:${color};">${esc(p)}</label>
+          <input type="text" id="cp-${esc(p)}" placeholder="0" value="${toInputNumber(each)}" inputmode="decimal" oninput="autoFillLastCreateField('percent', ${jsArg(p)})" onfocus="autoFillLastCreateField('percent', ${jsArg(p)})" />
         </div>`;
               })
               .join('') +
@@ -3293,8 +3367,8 @@
                 const c = colorFor(p);
                 const inSplit = (exp.splits[p] || 0) > 0;
                 return `<label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:5px 10px;border-radius:100px;border:1.5px solid ${c}40;background:${c}10;font-size:12px;font-weight:600;color:${c};">
-          <input type="checkbox" id="es-${id}-${p}" ${inSplit ? 'checked' : ''} style="width:auto;accent-color:${c};"/>
-          ${p}</label>`;
+          <input type="checkbox" id="es-${id}-${esc(p)}" ${inSplit ? 'checked' : ''} style="width:auto;accent-color:${c};"/>
+          ${esc(p)}</label>`;
               })
               .join('') +
             `</div>`;
@@ -3308,8 +3382,8 @@
                 const c = colorFor(p);
                 const val = roundAmount(exp.splits[p] || 0);
                 return `<div class="custom-split-field" style="border-color:${c}30;">
-          <label style="color:${c};">${p}</label>
-          <input type="text" id="ec-${id}-${p}" value="${toInputNumber(val)}" inputmode="decimal" oninput="autoFillLastEditField(${id}, 'exact', ${JSON.stringify(p)})" onfocus="autoFillLastEditField(${id}, 'exact', ${JSON.stringify(p)})"/>
+          <label style="color:${c};">${esc(p)}</label>
+          <input type="text" id="ec-${id}-${esc(p)}" value="${toInputNumber(val)}" inputmode="decimal" oninput="autoFillLastEditField(${id}, 'exact', ${jsArg(p)})" onfocus="autoFillLastEditField(${id}, 'exact', ${jsArg(p)})"/>
         </div>`;
               })
               .join('') +
@@ -3329,8 +3403,8 @@
                     ? ((Number(exp.splits[p]) || 0) * 100) / exp.amount
                     : 0;
                 return `<div class="custom-split-field" style="border-color:${c}30;">
-          <label style="color:${c};">${p}</label>
-          <input type="text" id="ep-${id}-${p}" value="${toInputNumber(pct)}" inputmode="decimal" oninput="autoFillLastEditField(${id}, 'percent', ${JSON.stringify(p)})" onfocus="autoFillLastEditField(${id}, 'percent', ${JSON.stringify(p)})"/>
+          <label style="color:${c};">${esc(p)}</label>
+          <input type="text" id="ep-${id}-${esc(p)}" value="${toInputNumber(pct)}" inputmode="decimal" oninput="autoFillLastEditField(${id}, 'percent', ${jsArg(p)})" onfocus="autoFillLastEditField(${id}, 'percent', ${jsArg(p)})"/>
         </div>`;
               })
               .join('') +
@@ -3483,11 +3557,11 @@
             .map(p => {
               const c = colorFor(p);
               const sel = (editPayerSel[e.id] || e.paidBy) === p;
-              return `<button class="edit-payer-btn ${sel ? 'sel' : ''}" data-ep="${e.id}" data-name="${p}" data-color="${c}"
-              onclick="setEditPayer(${e.id}, '${p}')"
+              return `<button class="edit-payer-btn ${sel ? 'sel' : ''}" data-ep="${e.id}" data-name="${esc(p)}" data-color="${c}"
+              onclick="setEditPayer(${e.id}, ${jsArg(p)})"
               style="border-color:${sel ? c : 'var(--border)'}; background:${sel ? c + '15' : 'var(--surface)'}; color:${sel ? c : 'var(--muted)'};">
               <div class="edit-payer-avatar" style="background:${c}; opacity:${sel ? 1 : 0.6}">${initials(p)}</div>
-              ${p}
+              ${esc(p)}
             </button>`;
             })
             .join('')}
@@ -3511,12 +3585,12 @@
       <div class="expense-card-main">
         <div class="expense-card-icon" style="background:${payerColor}12;">${e.emoji}</div>
         <div class="expense-card-body">
-          <div class="expense-card-desc">${e.description}</div>
+          <div class="expense-card-desc">${esc(e.description)}</div>
           <div class="expense-card-meta">
             <span class="meta-payer-dot" style="background:${payerColor};">${initials(e.paidBy)}</span>
-            <span style="font-weight:600; color:${payerColor};">${e.paidBy} pagó</span>
+            <span style="font-weight:600; color:${payerColor};">${esc(e.paidBy)} pagó</span>
             <span class="meta-sep">·</span>
-            <span>${participants.join(', ')}</span>
+            <span>${participants.map(esc).join(', ')}</span>
           </div>
         </div>
         <div class="expense-card-right">
@@ -3613,7 +3687,7 @@
             return `<tr>
       <td><div class="avatar-cell">
         <div class="mini-avatar" style="background:${color};">${initials(r.persona)}</div>
-        <span class="avatar-name">${r.persona}</span>
+        <span class="avatar-name">${esc(r.persona)}</span>
       </div></td>
       <td>${formatMoney(r.pago / 100, state.baseCurrency)}</td>
       <td>${formatMoney(r.consumo / 100, state.baseCurrency)}</td>
@@ -3665,7 +3739,7 @@
         <div class="transfer-body">
           <div class="transfer-person">
             <div class="transfer-avatar" style="background:${dc};">${initials(l.deudor)}</div>
-            <div class="transfer-name">${l.deudor}</div>
+            <div class="transfer-name">${esc(l.deudor)}</div>
             <span class="transfer-role paga">Paga</span>
           </div>
           <div class="transfer-arrow">
@@ -3682,7 +3756,7 @@
           </div>
           <div class="transfer-person">
             <div class="transfer-avatar" style="background:${ac};">${initials(l.acreedor)}</div>
-            <div class="transfer-name">${l.acreedor}</div>
+            <div class="transfer-name">${esc(l.acreedor)}</div>
             <span class="transfer-role recibe">Recibe</span>
           </div>
         </div>
@@ -3733,7 +3807,7 @@
       <div class="transfer-body">
         <div class="transfer-person">
           <div class="transfer-avatar" style="background:${dc};">${initials(l.deudor)}</div>
-          <div class="transfer-name">${l.deudor}</div>
+          <div class="transfer-name">${esc(l.deudor)}</div>
           <span class="transfer-role paga">Paga</span>
         </div>
         <div class="transfer-arrow">
@@ -3750,7 +3824,7 @@
         </div>
         <div class="transfer-person">
           <div class="transfer-avatar" style="background:${ac};">${initials(l.acreedor)}</div>
-          <div class="transfer-name">${l.acreedor}</div>
+          <div class="transfer-name">${esc(l.acreedor)}</div>
           <span class="transfer-role recibe">Recibe</span>
         </div>
       </div>
@@ -3830,6 +3904,8 @@
           return;
         state = JSON.parse(JSON.stringify(entry.snapshot));
         save();
+        _isSharedView = false;
+        dismissSharedBanner();
         closeHistory();
         applyStateToUI();
         showToast(`📂 "${entry.tripName}" cargada`);
@@ -3893,7 +3969,7 @@
                 : '';
             return `<div class="session-card" style="animation-delay:${i * 40}ms" onclick="loadSession('${s.id}')">
       <div class="session-card-top">
-        <div class="session-card-name">${s.tripName}</div>
+        <div class="session-card-name">${esc(s.tripName)}</div>
         <div class="session-card-date">${dateStr} · ${timeStr}</div>
       </div>
       <div class="session-card-meta">
@@ -3929,35 +4005,117 @@
           closeHistory();
       }
 
-      // ─── SHARE (servidor → ID corto ~6 chars) ────────────────────────────────────
+      // ─── SHARE ────────────────────────────────────────────────────────────────────
+      // Estrategia híbrida:
+      //  1. Link corto /s/{id} guardado en Redis (preview OG lindo en WhatsApp, expira 30 días).
+      //  2. Si el servidor falla, link autocontenido /#d=... con la sesión comprimida
+      //     dentro de la URL: no depende de backend y nunca expira.
       let _isSharedView = false;
+      let _sharedLinkExpires = true;
 
-      function _copyToClipboard(text) {
-        navigator.clipboard.writeText(text).catch(() => {
-          const ta = document.createElement('textarea');
-          ta.value = text;
-          ta.style.position = 'fixed';
-          ta.style.opacity = '0';
-          document.body.appendChild(ta);
-          ta.focus();
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-        });
+      function _fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        let ok = false;
+        try {
+          ok = document.execCommand('copy');
+        } catch {}
+        document.body.removeChild(ta);
+        return ok;
+      }
+
+      async function _copyToClipboard(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch {
+          if (_fallbackCopy(text)) return true;
+          // Último recurso: que el usuario lo copie a mano
+          window.prompt('Copiá el link:', text);
+          return false;
+        }
+      }
+
+      // ─── Codificación de sesión en URL (deflate + base64url) ─────────────────────
+      function _bytesToB64url(bytes) {
+        let bin = '';
+        for (let i = 0; i < bytes.length; i += 0x8000) {
+          bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+        }
+        return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      }
+      function _b64urlToBytes(str) {
+        const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+        const bin = atob(b64 + '==='.slice((b64.length + 3) % 4));
+        const out = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+        return out;
+      }
+      async function _pipeBytes(bytes, stream) {
+        const res = new Response(new Blob([bytes]).stream().pipeThrough(stream));
+        return new Uint8Array(await res.arrayBuffer());
+      }
+      async function encodeSnapshot(snapshot) {
+        const raw = new TextEncoder().encode(JSON.stringify(snapshot));
+        if (typeof CompressionStream === 'function') {
+          const packed = await _pipeBytes(raw, new CompressionStream('deflate-raw'));
+          return `1.${_bytesToB64url(packed)}`;
+        }
+        return `0.${_bytesToB64url(raw)}`;
+      }
+      async function decodeSnapshot(token) {
+        const [version, payload] = String(token).split('.', 2);
+        if (!payload) throw new Error('Token inválido');
+        let bytes = _b64urlToBytes(payload);
+        if (version === '1') {
+          bytes = await _pipeBytes(bytes, new DecompressionStream('deflate-raw'));
+        } else if (version !== '0') {
+          throw new Error('Versión de link no soportada');
+        }
+        return JSON.parse(new TextDecoder().decode(bytes));
       }
 
       async function _publishSnapshot(snapshot) {
-        const res = await fetch('/api/s', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(snapshot),
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || res.status);
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 8000);
+        try {
+          const res = await fetch('/api/s', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(snapshot),
+            signal: ctrl.signal,
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `HTTP ${res.status}`);
+          }
+          const { id } = await res.json();
+          return id;
+        } finally {
+          clearTimeout(timer);
         }
-        const { id } = await res.json();
-        return `${location.origin}/s/${id}`;
+      }
+
+      // Devuelve { url, shareId, expires }
+      async function _buildShareLink(snapshot) {
+        try {
+          const id = await _publishSnapshot(snapshot);
+          return { url: `${location.origin}/s/${id}`, shareId: id, expires: true };
+        } catch (err) {
+          console.warn('[share] servidor no disponible, uso link autocontenido', err);
+          const token = await encodeSnapshot(snapshot);
+          return { url: `${location.origin}/#d=${token}`, shareId: null, expires: false };
+        }
+      }
+
+      function _resetShareBtn(btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Compartir`;
       }
 
       async function saveAndShare() {
@@ -3974,18 +4132,15 @@
             ownerId: CURRENT_USER_ID,
             sharedAt: new Date().toISOString(),
           };
-          const url = await _publishSnapshot(snapshot);
-          const shareId =
-            new URL(url).pathname.split('/').filter(Boolean).pop() || null;
+          const { url, shareId } = await _buildShareLink(snapshot);
           _saveToHistory(snapshot, { shareId, isOwner: true });
-          _copyToClipboard(url);
-          showToast('🔗 Link copiado — sesión guardada');
+          const copied = await _copyToClipboard(url);
+          if (copied) showToast('🔗 Link copiado — sesión guardada');
         } catch (err) {
           console.error(err);
           showToast('⚠️ Error al generar el link');
         } finally {
-          btn.disabled = false;
-          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Compartir`;
+          _resetShareBtn(btn);
         }
       }
 
@@ -3998,59 +4153,265 @@
           return;
         }
         try {
-          const url = await _publishSnapshot(entry.snapshot);
-          _copyToClipboard(url);
-          showToast('🔗 Link copiado al portapapeles');
+          const { url } = await _buildShareLink(entry.snapshot);
+          const copied = await _copyToClipboard(url);
+          if (copied) showToast('🔗 Link copiado al portapapeles');
         } catch {
           showToast('⚠️ Error al generar el link');
         }
       }
 
-      // ─── SHARED SESSION DETECTION ─────────────────────────────────────────────────
-      async function checkSharedUrl() {
-        const params = new URLSearchParams(location.search);
-        const sid = params.get('s');
-        if (!sid) return;
-        history.replaceState({}, '', location.pathname);
+      // ─── SHARE COMO IMAGEN ────────────────────────────────────────────────────────
+      function _roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+      function _fitText(ctx, text, maxWidth) {
+        if (ctx.measureText(text).width <= maxWidth) return text;
+        let t = text;
+        while (t.length > 1 && ctx.measureText(t + '…').width > maxWidth) t = t.slice(0, -1);
+        return t + '…';
+      }
 
+      function renderSummaryImage() {
+        const W = 720;
+        const PAD = 32;
+        const ROW = 76;
+        const transfers = _liquidacion;
+        const total = state.expenses.reduce((s, e) => s + (Number(e.amountInBase) || 0), 0);
+        const headerH = 170;
+        const bodyH = Math.max(1, transfers.length) * ROW + 56;
+        const footerH = 56;
+        const H = headerH + bodyH + footerH;
+        const scale = 2;
+        const font = getComputedStyle(document.body).fontFamily || 'system-ui, sans-serif';
+
+        const canvas = document.createElement('canvas');
+        canvas.width = W * scale;
+        canvas.height = H * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(scale, scale);
+
+        // Fondo
+        ctx.fillStyle = '#f0eeff';
+        ctx.fillRect(0, 0, W, H);
+
+        // Header
+        const grad = ctx.createLinearGradient(0, 0, W, headerH);
+        grad.addColorStop(0, '#6c5ce7');
+        grad.addColorStop(1, '#a29bfe');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, headerH);
+
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font = `700 16px ${font}`;
+        ctx.fillText('🎉 La Jodita', PAD, 44);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `800 32px ${font}`;
+        ctx.fillText(_fitText(ctx, state.tripName || 'Cuentas claras', W - PAD * 2), PAD, 92);
+
+        ctx.font = `600 16px ${font}`;
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        const meta = `${state.participants.length} personas · ${state.expenses.length} gastos · Total ${formatMoney(total, state.baseCurrency)} ${state.baseCurrency}`;
+        ctx.fillText(_fitText(ctx, meta, W - PAD * 2), PAD, 132);
+
+        // Título sección
+        let y = headerH + 36;
+        ctx.fillStyle = '#7b7a99';
+        ctx.font = `700 13px ${font}`;
+        ctx.fillText('QUIÉN LE PAGA A QUIÉN', PAD, y);
+        y += 16;
+
+        if (!transfers.length) {
+          _roundRect(ctx, PAD, y, W - PAD * 2, ROW - 12, 14);
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+          ctx.fillStyle = '#1e1b3a';
+          ctx.font = `700 20px ${font}`;
+          ctx.fillText('🎉 ¡Todos están a mano!', PAD + 20, y + 40);
+        }
+
+        transfers.forEach(t => {
+          _roundRect(ctx, PAD, y, W - PAD * 2, ROW - 12, 14);
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+
+          const cy = y + (ROW - 12) / 2;
+          // Avatar deudor
+          const drawAvatar = (name, x) => {
+            ctx.beginPath();
+            ctx.arc(x, cy, 18, 0, Math.PI * 2);
+            ctx.fillStyle = colorFor(name);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `800 13px ${font}`;
+            ctx.textAlign = 'center';
+            ctx.fillText(initials(name), x, cy + 5);
+            ctx.textAlign = 'left';
+          };
+          drawAvatar(t.deudor, PAD + 34);
+
+          const amount = `${formatMoney(t.monto / 100, state.baseCurrency)}`;
+          ctx.font = `800 20px ${font}`;
+          const amountW = ctx.measureText(amount).width;
+          const nameMax = (W - PAD * 2 - 34 - 18 - 24 - amountW - 40 - 48) / 2;
+
+          ctx.fillStyle = '#1e1b3a';
+          ctx.font = `700 16px ${font}`;
+          const from = _fitText(ctx, t.deudor, nameMax);
+          ctx.fillText(from, PAD + 62, cy + 6);
+          let x = PAD + 62 + ctx.measureText(from).width + 12;
+          ctx.fillStyle = '#6c5ce7';
+          ctx.fillText('→', x, cy + 6);
+          x += ctx.measureText('→').width + 12;
+          ctx.fillStyle = '#1e1b3a';
+          ctx.fillText(_fitText(ctx, t.acreedor, nameMax), x, cy + 6);
+
+          ctx.fillStyle = '#6c5ce7';
+          ctx.font = `800 20px ${font}`;
+          ctx.textAlign = 'right';
+          ctx.fillText(amount, W - PAD - 20, cy + 7);
+          ctx.textAlign = 'left';
+
+          y += ROW;
+        });
+
+        // Footer
+        ctx.fillStyle = '#7b7a99';
+        ctx.font = `600 13px ${font}`;
+        ctx.textAlign = 'center';
+        ctx.fillText(`Dividido con ${location.host}`, W / 2, H - 24);
+        ctx.textAlign = 'left';
+
+        return canvas;
+      }
+
+      function _canvasToBlob(canvas) {
+        return new Promise((resolve, reject) =>
+          canvas.toBlob(b => (b ? resolve(b) : reject(new Error('toBlob falló'))), 'image/png'),
+        );
+      }
+
+      async function shareAsImage() {
+        if (!state.expenses.length) {
+          showToast('⚠️ No hay gastos para compartir');
+          return;
+        }
+        calcularLiquidacion();
+        const blobPromise = _canvasToBlob(renderSummaryImage());
+        const fileName = `la-jodita-${(state.tripName || 'resumen').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
+
+        // 1) Portapapeles (ClipboardItem debe crearse sincrónicamente dentro del gesto en Safari)
         try {
-          const res = await fetch(`/api/s/${sid}`);
-          if (!res.ok) {
-            showToast('⚠️ Sesión no encontrada o expirada (30 días)');
+          if (window.ClipboardItem && navigator.clipboard?.write) {
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
+            showToast('🖼️ Imagen copiada — pegala en el chat');
             return;
           }
-          const shared = await res.json();
-          if (
-            !Array.isArray(shared.participants) ||
-            !Array.isArray(shared.expenses)
-          )
-            throw new Error();
-          _isSharedView = true;
-          state = shared;
-          const isOwner = shared?._shareMeta?.ownerId === CURRENT_USER_ID;
-          _saveToHistory(shared, { shareId: sid, isOwner });
-          document.getElementById('trip-name').value = state.tripName;
-          document.getElementById('base-currency-select').value =
-            state.baseCurrency;
-          renderHeaderName();
-          renderChips();
-          renderExtraCurrencies();
-          renderPayerGrid();
-          renderExpensesList();
-          renderCurrencyRateLabel();
-          goToStep(4);
-          showSharedBanner(state.tripName);
-        } catch {
-          showToast('⚠️ Link inválido o expirado');
+        } catch (err) {
+          console.warn('[share-image] clipboard falló', err);
         }
+
+        const blob = await blobPromise;
+        // 2) Share sheet nativo (mobile)
+        try {
+          const file = new File([blob], fileName, { type: 'image/png' });
+          if (navigator.canShare?.({ files: [file] })) {
+            await navigator.share({ files: [file], title: state.tripName || 'La Jodita' });
+            return;
+          }
+        } catch (err) {
+          if (err?.name === 'AbortError') return;
+          console.warn('[share-image] share falló', err);
+        }
+
+        // 3) Descarga
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = fileName;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        showToast('🖼️ Imagen descargada');
+      }
+
+      // ─── SHARED SESSION DETECTION ─────────────────────────────────────────────────
+      function _hasData(s) {
+        return !!(s && (s.participants?.length || s.expenses?.length));
+      }
+
+      async function _readSharedFromUrl() {
+        const params = new URLSearchParams(location.search);
+        const sid = params.get('s');
+        const hash = new URLSearchParams(location.hash.slice(1));
+        const token = hash.get('d');
+        if (!sid && !token) return null;
+        history.replaceState({}, '', location.pathname);
+
+        if (token) {
+          return { snapshot: await decodeSnapshot(token), shareId: null, expires: false };
+        }
+        if (!/^[a-z0-9]{4,12}$/.test(sid)) throw new Error('ID inválido');
+        const res = await fetch(`/api/s/${sid}`);
+        if (res.status === 404) return { notFound: true };
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return { snapshot: await res.json(), shareId: sid, expires: true };
+      }
+
+      async function checkSharedUrl() {
+        let result;
+        try {
+          result = await _readSharedFromUrl();
+        } catch (err) {
+          console.error('[shared]', err);
+          showToast('⚠️ Link inválido o el servidor no responde');
+          return;
+        }
+        if (!result) return;
+        if (result.notFound) {
+          showToast('⚠️ Sesión no encontrada o expirada (30 días)');
+          return;
+        }
+        const shared = sanitizeSnapshot(result.snapshot);
+        if (!shared) {
+          showToast('⚠️ Link inválido');
+          return;
+        }
+
+        // No pisar la sesión local en curso: se resguarda en el historial
+        if (_hasData(state) && JSON.stringify(state) !== JSON.stringify(shared)) {
+          _saveToHistory(state, { isOwner: true });
+        }
+
+        _isSharedView = true;
+        _sharedLinkExpires = result.expires;
+        state = shared;
+        save();
+        const isOwner = shared._shareMeta?.ownerId === CURRENT_USER_ID;
+        _saveToHistory(shared, { shareId: result.shareId, isOwner });
+        document.getElementById('trip-name').value = state.tripName;
+        document.getElementById('base-currency-select').value = state.baseCurrency;
+        renderHeaderName();
+        renderChips();
+        renderExtraCurrencies();
+        renderPayerGrid();
+        renderExpensesList();
+        renderCurrencyRateLabel();
+        goToStep(4);
+        showSharedBanner(state.tripName);
       }
 
       function showSharedBanner(tripName) {
         const banner = document.getElementById('shared-banner');
         banner.innerHTML = `<div class="shared-banner">
     <div style="flex:1;">
-      <div class="shared-banner-text">👁️ Vista compartida: <strong>${tripName || 'Sin nombre'}</strong></div>
-      <div class="shared-banner-sub">Solo lectura · expira en 30 días</div>
+      <div class="shared-banner-text">👁️ Vista compartida: <strong>${esc(tripName || 'Sin nombre')}</strong></div>
+      <div class="shared-banner-sub">${_sharedLinkExpires ? 'El link expira en 30 días · ya quedó guardada en tu historial' : 'Guardada en tu historial'}</div>
     </div>
     <button class="btn btn-ghost btn-sm" style="background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.3);color:white;" onclick="startNewSession()">+ Nueva sesión</button>
     <button style="color:white;background:rgba(255,255,255,0.15);border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;" onclick="dismissSharedBanner()">✕</button>

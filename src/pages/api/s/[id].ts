@@ -21,7 +21,10 @@ export const GET: APIRoute = async ({ params }) => {
   } catch (err) {
     console.error('[GET /api/s]', err);
     const message = err instanceof Error ? err.message : 'Error';
-    const status = message.includes('UPSTASH_REDIS_REST_') ? 503 : 500;
-    return new Response(message, { status });
+    const unavailable =
+      message.includes('UPSTASH_REDIS_REST_') || message.includes('fetch failed');
+    return new Response(unavailable ? 'Almacenamiento no disponible' : 'Error interno', {
+      status: unavailable ? 503 : 500,
+    });
   }
 };

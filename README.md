@@ -20,7 +20,8 @@
 | ✏️ **Edición inline**        | Editá quién pagó y la división sin salir de la lista          |
 | 🧮 **Liquidación**           | Mínimas transferencias para saldar todas las deudas           |
 | 💾 **Persistencia local**    | Todo se guarda en `localStorage`, sin cuenta ni login         |
-| 🔗 **Sesiones compartidas**  | Guarda snapshot en Redis y genera links cortos para compartir |
+| 🔗 **Sesiones compartidas**  | Link corto vía Redis, con fallback a link autocontenido (sesión comprimida en la URL) |
+| 🖼️ **Compartir imagen**     | Genera un PNG del resumen y lo copia al portapapeles |
 | 🧾 **Historial inteligente** | Guarda sesiones vistas/propias (máximo 10 por usuario)        |
 | 🔖 **Versionado visible**    | Badge de versión en header con tracking mayor/menor           |
 | 📱 **Mobile optimizado**     | En liquidación, columna Persona muestra solo avatar en mobile |
